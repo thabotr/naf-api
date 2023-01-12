@@ -65,33 +65,53 @@ Router::post("/profiles", function () {
 
 [$user_id, $profile] = $db_repo->get_user_id_and_profile($handle, $token);
 
-class EventType {
+class EventType
+{
   static $IDLE = 0;
   static $NEW_MESSAGE = 1;
 }
 
-function user_has_new_msg() {
-  global $db_repo, $user_id;
+function user_has_new_msg(DateTime $since, int $user_id, string $handle, DBRepository $db_repo)
+{
   $messages = $db_repo->get_user_messages($user_id);
-    $received_messages = count(array_filter(
+  $received_messages = count(
+    array_filter(
       $messages,
-      function ($msg) {
-        global $handle;
-        return $msg['toHandle'] === $handle;
-    }
-    ));
+      function ($msg) use ($since, $handle) {
+        $msg_timestamp = new DateTime($msg['timestamp']);
+        $is_new_message = $msg_timestamp > $since;
+        $msg_is_to_user = $msg['toHandle'] === $handle;
+        return $is_new_message && $msg_is_to_user;
+      }
+    )
+  );
   return $received_messages > 0;
 }
 
-Router::get("/notifications", function () {
+function validate_instructions(array $instructions) {
+  $validation_result = Validator::validate_notification_instructions($instructions);
+  if($validation_result !== '') {
+    header('HTTP/1.0 400 Bad Request');
+    echo $validation_result;
+    exit;
+  }
+}
+
+Router::post("/notifications", function ($request_body) use ($user_id, $handle, $db_repo) {
   set_time_limit(0);
   ob_implicit_flush(true);
   ob_end_flush();
   $iter = 0;
   header("X-Accel-Buffer: no");
+  $instructions = json_decode($request_body, true);
+  validate_instructions($instructions);
+
   while ($iter < 100) {
-    if (user_has_new_msg()) {
+    $msg_since = new DateTime($instructions['messagesSince'], new DateTimeZone('UTC'));
+    if (user_has_new_msg($msg_since, $user_id, $handle, $db_repo)) {
       echo EventType::$NEW_MESSAGE;
+    } else {
+      echo EventType::$IDLE;
     }
     sleep(1);
     $iter += 1;

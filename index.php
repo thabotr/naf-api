@@ -12,24 +12,6 @@ Router::get("/ping", function () {
   exit;
 });
 
-Router::get("/notifications", function () {
-  set_time_limit(0);
-  ob_implicit_flush(true);
-  ob_end_flush();
-  $iter = 0;
-  header("X-Accel-Buffer: no");
-  while ($iter < 10) {
-    if( $iter % 5 === 0) {
-      echo 1;
-    } else {
-      echo 0;
-    }
-    sleep(1);
-    $iter += 1;
-  }
-  exit;
-});
-
 $db_repo = new DBRepository("tartarus.aserv.co.za:3306", "thabolao_naf_admin", "naf_admin_pw", "thabolao_naf_db");
 if (!isset($_SERVER['PHP_AUTH_USER'])) {
   header('WWW-Authenticate: BASIC realm="user profile"');
@@ -82,6 +64,40 @@ Router::post("/profiles", function () {
 
 
 [$user_id, $profile] = $db_repo->get_user_id_and_profile($handle, $token);
+
+class EventType {
+  static $IDLE = 0;
+  static $NEW_MESSAGE = 1;
+}
+
+function user_has_new_msg() {
+  global $db_repo, $user_id;
+  $messages = $db_repo->get_user_messages($user_id);
+    $received_messages = count(array_filter(
+      $messages,
+      function ($msg) {
+        global $handle;
+        return $msg['toHandle'] === $handle;
+    }
+    ));
+  return $received_messages > 0;
+}
+
+Router::get("/notifications", function () {
+  set_time_limit(0);
+  ob_implicit_flush(true);
+  ob_end_flush();
+  $iter = 0;
+  header("X-Accel-Buffer: no");
+  while ($iter < 100) {
+    if (user_has_new_msg()) {
+      echo EventType::$NEW_MESSAGE;
+    }
+    sleep(1);
+    $iter += 1;
+  }
+  exit;
+});
 
 Router::delete("/connections", "/(?<chat_handle>w/[a-zA-Z0-9-_]+)", function (array $matched_patterns) {
   global $user_id, $db_repo;

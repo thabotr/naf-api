@@ -97,21 +97,24 @@ function validate_instructions(array $instructions) {
   }
 }
 
+function padded_event(int $event): string {
+  return $event . str_repeat(' ', 4093) . "\r\n";
+}
+
 Router::post("/notifications", function ($request_body) use ($user_id, $handle, $db_repo) {
   set_time_limit(0);
   ob_implicit_flush(true);
   ob_end_flush();
   $iter = 0;
-  header("X-Accel-Buffer: no");
   $instructions = json_decode($request_body, true);
   validate_instructions($instructions);
-
-  while ($iter < 100) {
+  
+  while ($iter < 10) {
     $msg_since = new DateTime($instructions['messagesSince'], new DateTimeZone('UTC'));
     if (user_has_new_msg($msg_since, $user_id, $handle, $db_repo)) {
-      echo EventType::$NEW_MESSAGE;
+      echo padded_event(EventType::$NEW_MESSAGE);
     } else {
-      echo EventType::$IDLE;
+      echo padded_event(EventType::$IDLE);
     }
     sleep(1);
     $iter += 1;

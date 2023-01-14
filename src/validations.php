@@ -15,14 +15,14 @@ class Validator {
 
   static function validate_notification_instructions(array $instructions): string {
 
-    if (!isset($instructions['messagesSince'])) {
-      return "missing field 'messagesSince'";
+    if (!isset($instructions['messagessince'])) {
+      return "missing header 'messagessince'";
     }
   
     try {
-      new DateTime($instructions['messagesSince'], new DateTimeZone('UTC'));
+      new DateTime($instructions['messagessince'], new DateTimeZone('UTC'));
     } catch( Exception $e) {
-      return "instruction field 'messagesSince' should be format '%Y-%m%d %H:%M:%S'";
+      return "instruction header 'messagessince' should be format '%Y-%m%d %H:%M:%S'";
     }
 
     return '';

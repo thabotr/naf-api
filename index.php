@@ -101,11 +101,13 @@ Router::get("/notifications", function () use ($user_id, $handle, $db_repo) {
   $selectors = getallheaders();
   validate_instructions($selectors);
   $msg_since = new DateTime($selectors['messagessince'], new DateTimeZone('UTC'));
+  header('HTTP/1.0 200 OK');
   if (user_has_new_msg($msg_since, $user_id, $handle, $db_repo)) {
-    header('HTTP/1.0 200 OK');
     echo EventType::$NEW_MESSAGE;
     exit;
   }
+  echo EventType::$IDLE;
+  exit;
 });
 
 function padded_event(int $event): string {

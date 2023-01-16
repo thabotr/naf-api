@@ -22,7 +22,7 @@ class Validator {
     try {
       new DateTime($instructions['messagessince'], new DateTimeZone('UTC'));
     } catch( Exception $e) {
-      return "instruction header 'messagessince' should be format '%Y-%m%d %H:%M:%S'";
+      return "instruction header 'messagessince' should a UTC time of format '%Y-%m-%d %H:%M:%S'";
     }
 
     return '';

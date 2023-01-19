@@ -12,7 +12,12 @@ Router::get("/ping", function () {
   exit;
 });
 
-$db_repo = new DBRepository("tartarus.aserv.co.za:3306", "thabolao_naf_admin", "naf_admin_pw", "thabolao_naf_db");
+$db_repo = new DBRepository(
+  "tartarus.aserv.co.za:3306",
+  "thabolao_naf_admin",
+  "naf_admin_pw",
+  "thabolao_naf_db"
+);
 if (!isset($_SERVER['PHP_AUTH_USER'])) {
   header('WWW-Authenticate: BASIC realm="user profile"');
   header('HTTP/1.0 401 Unauthorized');
@@ -71,7 +76,12 @@ class EventType
   static $NEW_MESSAGE = 1;
 }
 
-function user_has_new_msg(DateTime $since, int $user_id, string $handle, DBRepository $db_repo)
+function user_has_new_msg(
+  DateTime $since,
+  int $user_id,
+  string $handle,
+  DBRepository $db_repo
+)
 {
   $messages = $db_repo->get_user_messages($user_id);
   $received_messages = count(
@@ -88,9 +98,10 @@ function user_has_new_msg(DateTime $since, int $user_id, string $handle, DBRepos
   return $received_messages > 0;
 }
 
-function validate_instructions(array $instructions) {
+function validate_instructions(array $instructions)
+{
   $validation_result = Validator::validate_notification_instructions($instructions);
-  if($validation_result !== '') {
+  if ($validation_result !== '') {
     header('HTTP/1.0 400 Bad Request');
     echo $validation_result;
     exit;
@@ -110,7 +121,8 @@ Router::get("/notifications", function () use ($user_id, $handle, $db_repo) {
   exit;
 });
 
-function padded_event(int $event): string {
+function padded_event(int $event): string
+{
   return $event . str_repeat(' ', 4093) . "\r\n";
 }
 
@@ -121,7 +133,7 @@ Router::post("/notifications", function ($request_body) use ($user_id, $handle, 
   $iter = 0;
   $instructions = json_decode($request_body, true);
   validate_instructions($instructions);
-  
+
   while ($iter < 10) {
     $msg_since = new DateTime($instructions['messagesSince'], new DateTimeZone('UTC'));
     if (user_has_new_msg($msg_since, $user_id, $handle, $db_repo)) {
@@ -135,19 +147,23 @@ Router::post("/notifications", function ($request_body) use ($user_id, $handle, 
   exit;
 });
 
-Router::delete("/connections", "/(?<chat_handle>w/[a-zA-Z0-9-_]+)", function (array $matched_patterns) {
-  global $user_id, $db_repo;
-  if (count($matched_patterns) == 0) {
-    header('HTTP/1.0 400 Bad Request');
-    echo "missing handle in url";
+Router::delete(
+  "/connections",
+  "/(?<chat_handle>w/[a-zA-Z0-9-_]+)",
+  function (array $matched_patterns) {
+    global $user_id, $db_repo;
+    if (count($matched_patterns) == 0) {
+      header('HTTP/1.0 400 Bad Request');
+      echo "missing handle in url";
+      exit;
+    }
+    $chat_handle = $matched_patterns['chat_handle'];
+    $db_repo->delete_user_chat($user_id, $chat_handle);
+    header('HTTP/1.0 200 OK');
+    echo "disconnected from $chat_handle";
     exit;
   }
-  $chat_handle = $matched_patterns['chat_handle'];
-  $db_repo->delete_user_chat($user_id, $chat_handle);
-  header('HTTP/1.0 200 OK');
-  echo "disconnected from $chat_handle";
-  exit;
-});
+);
 
 Router::get("/chats", function () {
   global $user_id, $db_repo;
@@ -157,15 +173,36 @@ Router::get("/chats", function () {
   exit;
 });
 
-Router::get("/messages", function () {
-  global $user_id, $db_repo;
+Router::get("/messages", function () use ($handle, $user_id, $db_repo) {
   $messages = $db_repo->get_user_messages($user_id);
-  echo json_encode($messages);
+  $filters = getallheaders();
+  $validation_result = Validator::validate_messages_filters($filters);
+  if ($validation_result !== '') {
+    header('HTTP/1.0 400 Bad Request');
+    echo $validation_result;
+    exit;
+  }
+  if (isset($filters['since'])) {
+    $since = new DateTime($filters['since'], new DateTimeZone("UTC"));
+    $messages_to_user = array_values(
+      array_filter(
+        $messages,
+        function ($msg) use ($handle, $since) {
+          $msg_time = new DateTime($msg['timestamp'], new DateTimeZone("UTC"));
+          $is_to_user = $msg['toHandle'] == $handle;
+          $is_after_since = $msg_time > $since;
+          return $is_to_user && $is_after_since;
+        }
+      )
+    );
+    echo json_encode($messages_to_user);
+  } else {
+    echo json_encode($messages);
+  }
   exit;
 });
 
-Router::get("/profiles", function () {
-  global $profile;
+Router::get("/profiles", function () use ($profile) {
   echo json_encode($profile);
   exit;
 });

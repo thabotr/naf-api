@@ -36,7 +36,10 @@ class Router
   {
     if (Router::we_should_handle_request($route, "POST")) {
       $request_body = file_get_contents('php://input');
-      call_user_func($callback, $request_body);
+      $url = $_SERVER['REQUEST_URI'];
+      preg_match("`/(?<handle>w/[a-zA-Z0-9-_]+)`", $url, $matches);
+      $rest_of_url = count($matches) >= 2 ? $matches[1] : '';
+      call_user_func($callback, $request_body, $rest_of_url);
       exit;
     }
   }

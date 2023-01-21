@@ -3,9 +3,10 @@ require_once(realpath(dirname(__FILE__) . '/src/repository.php'));
 require_once(realpath(dirname(__FILE__) . '/src/router.php'));
 require_once(realpath(dirname(__FILE__) . '/src/validations.php'));
 
+use middleware\rules\NoConnectionRequestTimestampException;
 use repository\database\DBRepository;
 use resource\Router;
-use middleware\business_rules\Validator;
+use middleware\rules\Validator;
 
 Router::get("/ping", function () {
   echo "pong";
@@ -245,6 +246,29 @@ Router::post("/messages", function (string $body) {
     header('HTTP/1.0 500 Internal Server Error');
     exit;
   }
+});
+
+Router::post("/connections", function ($body, $to_user_handle) use ($db_repo, $user_id) {
+
+  if (!Validator::is_valid_handle($to_user_handle)) {
+    header("HTTP/1.0 400 Bad Request");
+    echo "invalid or missing handle in url. Expected handle matching 'w/[a-zA-Z0-9-_]+'";
+    exit;
+  }
+
+  $repo_result = array();
+  try {
+    $repo_result = $db_repo->add_connection_request($user_id, $to_user_handle);
+  } catch ( NoConnectionRequestTimestampException $_) {
+    header("HTTP/1.0 404 Not Found");
+    echo "user " . $to_user_handle . " not found";
+    exit;
+  } catch (Exception $e) {
+    header("HTTP/1.0 500 Internal Server Error");
+    exit;
+  }
+  echo json_encode($repo_result);
+  exit;
 });
 
 header('HTTP/1.0 404 Not Found');

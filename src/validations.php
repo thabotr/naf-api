@@ -1,7 +1,14 @@
 <?php
-namespace middleware\business_rules;
+namespace middleware\rules;
 
 use DateTime, DateTimeZone, Exception;
+
+class NoConnectionRequestTimestampException extends Exception {
+  public function __construct()
+  {
+    parent::__construct("No connection request timestamp");
+  }
+}
 
 class Validator
 {

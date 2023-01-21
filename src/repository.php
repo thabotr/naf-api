@@ -1,9 +1,11 @@
 <?php
 namespace repository\database {
+  require_once(realpath(dirname(__FILE__) . './validations.php'));
   use mysqli;
   use mysqli_sql_exception;
   use mysqli_stmt;
-  use TheSeer\Tokenizer\Exception;
+  use Exception;
+  use middleware\rules\NoConnectionRequestTimestampException;
 
   mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
@@ -13,6 +15,47 @@ namespace repository\database {
     {
       $statement->execute();
       $result = $statement->get_result();
+      $rows = $result->fetch_all(MYSQLI_ASSOC);
+      return $rows;
+    }
+
+    protected function execute_typed_query(
+      string $query,
+      string $bind_types,
+      &$bind_var,
+      &...$bind_vars
+    )
+    {
+      $prepped_stmt = $this->prepare($query);
+      if (!$prepped_stmt) {
+        throw new Exception($this->error);
+      }
+      $is_prepped = $prepped_stmt->bind_param($bind_types, $bind_var, ...$bind_vars);
+      if (!$is_prepped) {
+        throw new Exception($this->error);
+      }
+      $is_exec = $prepped_stmt->execute();
+      if (!$is_exec) {
+        throw new Exception($this->error);
+      }
+      return $prepped_stmt;
+    }
+
+    protected function execute_result_query(
+      string $query,
+      string $bind_types,
+      &$bind_var,
+      &...$bind_vars
+    )
+    {
+      $statement = $this->execute_typed_query($query, $bind_types, $bind_var, ...$bind_vars);
+      if (!$statement) {
+        throw new Exception($this->error);
+      }
+      $result = $statement->get_result();
+      if (!$result) {
+        throw new Exception($this->error);
+      }
       $rows = $result->fetch_all(MYSQLI_ASSOC);
       return $rows;
     }
@@ -146,6 +189,78 @@ namespace repository\database {
 
       return array(
         "timestamp" => $res['created_at'],
+      );
+    }
+    function add_connection_request(int $from_user_id, string $to_user_handle): array
+    {
+      if (!$this->begin_transaction()) {
+        throw new Exception("Failed to start transaction");
+      }
+      $add_connection_request_stmt = <<<'SQL'
+        INSERT INTO connection_request(created_at, from_user, to_user)
+        WITH users(sender, receipient) AS (
+          SELECT ? AS sender, id AS receipient FROM user WHERE handle = ?
+        ),
+        conn_request_between_users AS (
+          SELECT NULL FROM connection_request
+          INNER JOIN users
+          ON users.receipient = connection_request.to_user
+          WHERE connection_request.from_user = users.sender
+        ),
+        connection_between_users AS (
+          SELECT NULL FROM connection, users
+          WHERE connection.user_a = users.sender AND connection.user_b = users.receipient
+            OR connection.user_a = users.receipient AND connection.user_b = users.sender
+        )
+        SELECT
+          CURRENT_TIMESTAMP() AS created_at,
+          users.sender AS from_user ,
+          users.receipient AS to_user
+        FROM users
+        WHERE NOT EXISTS (
+          SELECT NULL FROM conn_request_between_users
+          UNION
+          SELECT NULL FROM connection_between_users
+        )
+      SQL;
+      $preped_stmt = $this->execute_typed_query(
+        $add_connection_request_stmt,
+        "is",
+        $from_user_id,
+        $to_user_handle,
+      );
+      $preped_stmt->free_result();
+
+      $get_connection_or_connection_request_timestamp_stmt = <<<'SQL'
+        WITH users(sender, receipient) AS (
+          SELECT ? AS sender, id AS receipient FROM user WHERE handle = ?
+        )
+        SELECT created_at FROM connection, users
+        WHERE connection.user_a = users.sender AND connection.user_b = users.receipient
+          OR connection.user_a = users.receipient AND connection.user_b = users.sender
+        UNION
+        SELECT created_at FROM connection_request, users
+        WHERE connection_request.from_user = users.sender
+          AND connection_request.to_user = users.receipient
+          OR connection_request.from_user = users.receipient
+          AND connection_request.to_user = users.sender
+      SQL;
+      $db_result = $this->execute_result_query(
+        $get_connection_or_connection_request_timestamp_stmt,
+        "is",
+        $from_user_id,
+        $to_user_handle,
+      );
+      if (!$this->commit()) {
+        throw new Exception("Failed to commit transaction");
+      }
+      if (!isset($db_result[0])) {
+        throw new NoConnectionRequestTimestampException();
+      }
+      $row = $db_result[0];
+
+      return array(
+        "timestamp" => $row["created_at"],
       );
     }
   }

@@ -5,9 +5,12 @@
 - 🔒 endpoint passes credentials through basic authentication
 - **&lt;timestamp>** is a datetime string of format 'Y-m-d H-M-S'
 - **&lt;validHandle>** is a string which matches regexp 'w/[a-zA-Z0-9-_]+'
+- ❌❌ endpoint unvalidated
+- ✅❌ endpoint DEV validated
+- ✅✅ endpoint PROD validated
 
 # Endpoints
-## ❌❌ 🔒 POST /profiles
+## ✅❌ 🔒 POST /profiles
 register a new user
 
 **&lt;username of basic auth> is a &lt;validHandle> which is not yet registered AND &lt;password of basic auth> is a string of length 8 or greater**

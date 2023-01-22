@@ -1,7 +1,7 @@
 # NAF API
 
 # Glossary
-- 🔐 endpoint requires basic authentication
+- 🔐 endpoint requires basic authentication. To use username `testHandle` and password `testToken` by default as basic auth credentials
 - 🔒 endpoint passes credentials through basic authentication
 - **&lt;timestamp>** is a datetime string of format 'Y-m-d H-M-S'
 - **&lt;validHandle>** is a string which matches regexp 'w/[a-zA-Z0-9-_]+'
@@ -10,6 +10,24 @@
 - ✅✅ endpoint PROD validated
 
 # Endpoints
+## ✅❌ GET /ping
+use for server liveness probe
+
+Returns:
+
+    Status: 200 OK
+
+## ✅❌ 🔐 GET /profiles
+Returns:
+
+    Status: 200 OK
+
+Body:
+
+  ```json
+  {"handle" : "<user_handle>"}
+  ```  
+
 ## ✅❌ 🔒 POST /profiles
 register a new user
 

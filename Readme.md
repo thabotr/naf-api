@@ -26,7 +26,7 @@ Body:
 
   ```json
   {"handle" : "<user_handle>"}
-  ```  
+  ```
 
 ## ✅❌ 🔒 POST /profiles
 register a new user
@@ -70,6 +70,13 @@ An already registered user handle
 Returns:
 
     Status: 409 Conflict
+
+## ✅❌ 🔐 DELETE /profiles
+deregister user
+
+Returns:
+
+    Status: 200 OK
 
 ## ❌❌ 🔐 GET /connections
 all user connections seperated by 'requested' and 'connected' states

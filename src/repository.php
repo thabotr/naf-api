@@ -60,6 +60,11 @@ namespace repository\database {
       return $rows;
     }
 
+    function delete_user(int $user_id): void
+    {
+      $this->execute_typed_query("DELETE FROM user WHERE id = ?", "i", $user_id);
+    }
+
     function get_user_messages(int $user_id): array
     {
       $stmt = <<<'SQL'

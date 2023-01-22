@@ -261,5 +261,22 @@ class DBRepositoryTest extends TestCase
     $this->_disconnectUsers($this->user_id, $user_5_id);
     $this->_clearRequestsBetweenUsers($this->user_id, $user_5_id);
   }
+
+  public function testDeleteUserRemovesUserFromDb(): void
+  {
+    $user_handle = "w/userToDelete";
+    $user_id = 11;
+    $user_token = "helloMyPW";
+    $this->db_repo->query("INSERT IGNORE INTO user (id, handle, token) VALUES ".
+    "($user_id, '$user_handle', '$user_token')");
+    $this->db_repo->delete_user($user_id);
+    $sql_res = $this->db_repo->query(
+      "SELECT COUNT(*) as count FROM user WHERE id = $user_id",
+      MYSQLI_USE_RESULT,
+    );
+    $db_result = $sql_res->fetch_assoc();
+    $user_deleted = $db_result['count'] == 0;
+    $this->assertTrue($user_deleted);
+  }
 }
 ?>

@@ -151,8 +151,7 @@ Router::post("/notifications", function ($request_body) use ($user_id, $handle, 
 Router::delete(
   "/connections",
   "/(?<chat_handle>w/[a-zA-Z0-9-_]+)",
-  function (array $matched_patterns) {
-    global $user_id, $db_repo;
+  function (array $matched_patterns) use ($user_id, $db_repo) {
     if (count($matched_patterns) == 0) {
       header('HTTP/1.0 400 Bad Request');
       echo "missing handle in url";
@@ -165,6 +164,14 @@ Router::delete(
     exit;
   }
 );
+
+Router::delete("/profiles", "", function (array $_) use ($user_id, $db_repo) {
+
+  $db_repo->delete_user($user_id);
+  header("HTTP/1.0 200 OK");
+  echo "Notifications Are Free and so are you! Cheers😉";
+  exit;
+});
 
 Router::get("/chats", function () {
   global $user_id, $db_repo;

@@ -14,7 +14,7 @@ class Validator
 {
   static function is_valid_handle(string $handle): bool
   {
-    $valid_handle_pattern = "`w/[a-zA-Z0-9-_]+`";
+    $valid_handle_pattern = "`^w/[a-zA-Z0-9-_]+$`";
     return preg_match($valid_handle_pattern, $handle);
   }
 

@@ -2,14 +2,75 @@
 
 # Glossary
 - 🔐 endpoint requires basic authentication
+- 🔒 endpoint passes credentials through basic authentication
 - **&lt;timestamp>** is a datetime string of format 'Y-m-d H-M-S'
+- **&lt;validHandle>** is a string which matches regexp 'w/[a-zA-Z0-9-_]+'
 
 # Endpoints
-## 🔐 POST /connections/&lt;toHandle>
+## ❌❌ 🔒 POST /profiles
+register a new user
+
+**&lt;username of basic auth> is a &lt;validHandle> which is not yet registered AND &lt;password of basic auth> is a string of length 8 or greater**
+
+Example:
+
+    basic authentication username: w/testHandle6
+    basic authentication password: testToken
+
+Returns:
+
+    Status: 201 Created
+
+**&lt;username of basic auth> is not a &lt;validHandle> OR &lt;password of basic auth> is not a string of length less than 8**
+
+Examples:
+
+    basic authentication username: w/test=Handle6
+    basic authentication password: testToken
+
+    basic authentication username: w/testHandle6
+    basic authentication password: shortPw
+
+
+Returns:
+
+    Status: 400 Bad Request
+
+**&lt;username of basic auth> is a &lt;validHandle> AND &lt;password of basic auth> is string of length 8 or greater BUT &lt;username of basic auth> refers to an already registered user**
+
+Example:
+
+An already registered user handle
+
+    basic authentication username: w/testHandle
+    basic authentication password: testTokens
+
+
+Returns:
+
+    Status: 409 Conflict
+
+## ❌❌ 🔐 GET /connections
+all user connections seperated by 'requested' and 'connected' states
+
+Returns:
+
+    Status: 200 OK
+
+Body:
+
+  ```json
+  {
+    "requested" : ["<handle_a>", "<handle_b>", ...],
+    "connected" : ["handle_1", "<handle_2>", ...]
+  }
+  ```
+
+## ✅❌ 🔐 POST /connections/&lt;toHandle>
 
 Creates a request to connect to another user. If two users post these to each other then they will be connected.
 
-**&lt;toHandle> matches regexp 'w/[a-zA-Z0-9-_]+'**
+**&lt;toHandle> is a &lt;validHandle>**
 
   Example:
 
@@ -26,7 +87,7 @@ Creates a request to connect to another user. If two users post these to each ot
       {"timestamp" : "<timestamp>"}
   ```
 
-**&lt;toHandle> missing or does not match regexp 'w/[a-zA-Z0-9-_]+'**
+**&lt;toHandle> missing or is not a &lt;validHandle>**
 
   Examples:
 
@@ -36,7 +97,7 @@ Creates a request to connect to another user. If two users post these to each ot
 
     Status: 400 Bad Request
 
-**&lt;toHandle> refers to an unregistered user**
+**&lt;toHandle> is a &lt;validHandle> but refers to an unregistered user**
 
   Example:
 

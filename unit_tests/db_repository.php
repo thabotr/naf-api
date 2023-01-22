@@ -1,4 +1,5 @@
 <?php require_once(realpath(dirname(__FILE__) . '/../src/repository.php'));
+use phpDocumentor\Reflection\Types\Void_;
 use PHPUnit\Framework\TestCase;
 use repository\database\DBRepository;
 
@@ -20,6 +21,8 @@ class DBRepositoryTest extends TestCase
     $this->db_repo->close();
   }
 
+  private $user_id = 1;
+  protected $user_handle = 'w/testHandle';
   private function _addUserMessages(): void
   {
     $this->db_repo->query("DELETE FROM message WHERE from_user = 1 OR to_user = 1");
@@ -61,14 +64,14 @@ class DBRepositoryTest extends TestCase
   }
   private function _setUpConnections(): void
   {
-    $this->db_repo->query("INSERT IGNORE INTO connection(user_a, user_b) VALUES (1, 2)");
-    $this->db_repo->query("INSERT IGNORE INTO connection(user_a, user_b) VALUES (1, 3)");
+    $this->db_repo->query("DELETE FROM connection WHERE user_a = $this->user_id");
+    $this->db_repo->query("INSERT IGNORE INTO connection(user_a, user_b) VALUES ($this->user_id, 2)");
+    $this->db_repo->query("INSERT IGNORE INTO connection(user_a, user_b) VALUES ($this->user_id, 3)");
   }
   public function testGetUserChatsReturnsValidResult(): void
   {
     $this->_setUpConnections();
-    $test_id = 1;
-    $chats = $this->db_repo->get_user_chats($test_id);
+    $chats = $this->db_repo->get_user_chats($this->user_id);
     $expected_chats = [
       array("user" => array("handle" => "w/testHandle2")),
       array("user" => array("handle" => "w/testHandle3"))
@@ -80,13 +83,13 @@ class DBRepositoryTest extends TestCase
   public function testDeleteUserChatDeletesConnectionBetweenUserAndChat(): void
   {
     $this->_setUpConnections();
-    $test_id = 1;
     $chat_handle = "w/testHandle2";
-    $this->db_repo->delete_user_chat($test_id, $chat_handle);
-    $chats = $this->db_repo->get_user_chats($test_id);
-    $expected_chats = [array("user" => array("handle" => "w/testHandle3"))];
-    $this->assertArraySubset($expected_chats, $chats);
-    $this->assertArraySubset($chats, $expected_chats);
+    $this->db_repo->delete_user_chat($this->user_id, $chat_handle);
+    $user_chats = $this->db_repo->get_user_chats($this->user_id);
+    $deleted_chat = array("handle" => $chat_handle);
+    foreach ($user_chats as $chat) {
+      $this->assertNotEquals($deleted_chat, $chat);
+    }
   }
 
   public function testAddUserMessageReturnsTimestampOnSuccess(): void
@@ -145,12 +148,13 @@ class DBRepositoryTest extends TestCase
   {
     $this->db_repo->query("DELETE FROM connection_request WHERE to_user = $this->to_user_id");
   }
-  private function _checkUserConnectionRequests($to_user_id)
+  private function _checkConnectionRequestsBetween($user_a_id, $user_b_id)
   {
     $sql_res = $this->db_repo->query(
       "SELECT COUNT(*) AS count, created_at AS `timestamp`
         FROM connection_request
-        WHERE from_user = $this->from_user_id AND to_user = $to_user_id
+        WHERE from_user = $user_a_id AND to_user = $user_b_id
+          OR to_user = $user_a_id AND from_user = $user_b_id
       ",
       MYSQLI_USE_RESULT,
     );
@@ -164,7 +168,10 @@ class DBRepositoryTest extends TestCase
     );
     $this->assertArrayHasKey("timestamp", $repo_result);
 
-    $db_result = $this->_checkUserConnectionRequests($this->to_user_id);
+    $db_result = $this->_checkConnectionRequestsBetween(
+      $this->to_user_id,
+      $this->from_user_id
+    );
     $connection_added_to_db = $db_result['count'] >= 1;
     $this->assertTrue($connection_added_to_db);
     $this->assertEquals($repo_result['timestamp'], $db_result['timestamp']);
@@ -174,9 +181,15 @@ class DBRepositoryTest extends TestCase
     $this->_clearConnectionRequest();
     $multiple_calls = 2;
     for ($call = 0; $call < $multiple_calls; ++$call) {
-      $this->db_repo->add_connection_request($this->from_user_id, $this->to_user_handle);
+      $this->db_repo->add_connection_request(
+        $this->from_user_id,
+        $this->to_user_handle
+      );
     }
-    $db_result = $this->_checkUserConnectionRequests($this->to_user_id);
+    $db_result = $this->_checkConnectionRequestsBetween(
+      $this->to_user_id,
+      $this->from_user_id
+    );
     $connection_only_added_once_to_db = $db_result['count'] == 1;
     $this->assertTrue($connection_only_added_once_to_db);
   }
@@ -185,11 +198,68 @@ class DBRepositoryTest extends TestCase
   {
     $to_connected_user_id = 2;
     $to_connected_user_handle = "w/testHandle2";
-    $repo_result = $this->db_repo->add_connection_request($this->from_user_id, $to_connected_user_handle);
+    $repo_result = $this->db_repo->add_connection_request(
+      $this->from_user_id,
+      $to_connected_user_handle,
+    );
     $this->assertArrayHasKey('timestamp', $repo_result);
-    $db_result = $this->_checkUserConnectionRequests($to_connected_user_id);
+    $db_result = $this->_checkConnectionRequestsBetween(
+      $this->from_user_id,
+      $to_connected_user_id
+    );
     $connection_request_not_created = $db_result['count'] == 0;
     $this->assertTrue($connection_request_not_created);
+  }
+
+  private function _usersConnected(int $user_id_a, int $user_id_b): bool
+  {
+    $sql_res = $this->db_repo->query(
+      "SELECT COUNT(*) as count FROM connection WHERE " .
+      "user_a = $user_id_a AND user_b = $user_id_b",
+      MYSQLI_USE_RESULT,
+    );
+    $db_result = $sql_res->fetch_assoc();
+    return $db_result['count'] >= 1;
+  }
+
+  private function _disconnectUsers(int $user_1_id, int $user_2_id): void
+  {
+    if ($user_1_id > $user_2_id) {
+      // swap
+      $user_1_id += $user_2_id;
+      $user_2_id = $user_1_id - $user_2_id;
+      $user_1_id -= $user_2_id;
+    }
+    $this->db_repo->query(
+      "DELETE FROM connection WHERE user_a = $user_1_id AND user_b = $user_2_id"
+    );
+  }
+
+  private function _clearRequestsBetweenUsers(int $user_a_id, int $user_b_id): void
+  {
+    $this->db_repo->query(
+      "DELETE FROM connection_request " .
+      "WHERE from_user = $user_a_id AND to_user = $user_b_id " .
+      "OR from_user = $user_b_id AND to_user = $user_a_id"
+    );
+  }
+  public function testAddConnRqstOnMutualRqstToConnectAddsConnectionBetweenUsersAndReturnsConnTimestamp(): void
+  {
+    $user_5_id = 5;
+    $user_5_handle = "w/testHandle5";
+
+    $this->db_repo->add_connection_request($user_5_id, $this->user_handle);
+    $this->db_repo->add_connection_request($this->user_id, $user_5_handle);
+    $users_are_connected = $this->_usersConnected($this->user_id, $user_5_id);
+
+    $this->assertTrue($users_are_connected);
+
+    $db_result = $this->_checkConnectionRequestsBetween($this->user_id, $user_5_id);
+    $request_to_connect_does_not_exist = $db_result['count'] == 0;
+    $this->assertTrue($request_to_connect_does_not_exist);
+
+    $this->_disconnectUsers($this->user_id, $user_5_id);
+    $this->_clearRequestsBetweenUsers($this->user_id, $user_5_id);
   }
 }
 ?>

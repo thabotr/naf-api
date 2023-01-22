@@ -193,67 +193,7 @@ namespace repository\database {
     }
     function add_connection_request(int $from_user_id, string $to_user_handle): array
     {
-      if (!$this->begin_transaction()) {
-        throw new Exception("Failed to start transaction");
-      }
-      $add_connection_request_stmt = <<<'SQL'
-        INSERT INTO connection_request(created_at, from_user, to_user)
-        WITH users(sender, receipient) AS (
-          SELECT ? AS sender, id AS receipient FROM user WHERE handle = ?
-        ),
-        conn_request_between_users AS (
-          SELECT NULL FROM connection_request
-          INNER JOIN users
-          ON users.receipient = connection_request.to_user
-          WHERE connection_request.from_user = users.sender
-        ),
-        connection_between_users AS (
-          SELECT NULL FROM connection, users
-          WHERE connection.user_a = users.sender AND connection.user_b = users.receipient
-            OR connection.user_a = users.receipient AND connection.user_b = users.sender
-        )
-        SELECT
-          CURRENT_TIMESTAMP() AS created_at,
-          users.sender AS from_user ,
-          users.receipient AS to_user
-        FROM users
-        WHERE NOT EXISTS (
-          SELECT NULL FROM conn_request_between_users
-          UNION
-          SELECT NULL FROM connection_between_users
-        )
-      SQL;
-      $preped_stmt = $this->execute_typed_query(
-        $add_connection_request_stmt,
-        "is",
-        $from_user_id,
-        $to_user_handle,
-      );
-      $preped_stmt->free_result();
-
-      $get_connection_or_connection_request_timestamp_stmt = <<<'SQL'
-        WITH users(sender, receipient) AS (
-          SELECT ? AS sender, id AS receipient FROM user WHERE handle = ?
-        )
-        SELECT created_at FROM connection, users
-        WHERE connection.user_a = users.sender AND connection.user_b = users.receipient
-          OR connection.user_a = users.receipient AND connection.user_b = users.sender
-        UNION
-        SELECT created_at FROM connection_request, users
-        WHERE connection_request.from_user = users.sender
-          AND connection_request.to_user = users.receipient
-          OR connection_request.from_user = users.receipient
-          AND connection_request.to_user = users.sender
-      SQL;
-      $db_result = $this->execute_result_query(
-        $get_connection_or_connection_request_timestamp_stmt,
-        "is",
-        $from_user_id,
-        $to_user_handle,
-      );
-      if (!$this->commit()) {
-        throw new Exception("Failed to commit transaction");
-      }
+      $db_result = $this->execute_result_query("CALL connect_users(?, ?)", "is", $from_user_id, $to_user_handle);
       if (!isset($db_result[0])) {
         throw new NoConnectionRequestTimestampException();
       }

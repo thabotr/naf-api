@@ -14,6 +14,10 @@ BEGIN
   `body`:
   BEGIN
     SET to_user = (SELECT id FROM user WHERE handle = to_user_handle LIMIT 1);
+    IF to_user IS NULL THEN -- user handle does not exist
+    	LEAVE `body`;
+    END IF;
+    
     SET created_at = (
       SELECT `connection`.created_at FROM connection
       WHERE user_a = from_user AND user_b = to_user

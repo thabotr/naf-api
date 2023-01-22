@@ -1,5 +1,5 @@
 from assertpy import assert_that
-from routes import TestCaseWithHTTP, Routes
+from routes import TestCaseWithHTTP, Routes, getAuthHeaders
 from http import client
 import json
 
@@ -107,10 +107,53 @@ class POSTConnections(TestCaseWithHTTP):
         """
         to_user_handle = "w/testHandle3"
         to_user_handle_url = f"{connections_URL}/{to_user_handle}"
-        first_status, first_body = self.postConnection(to_user_handle_url, to_json=True)
+        first_status, first_body = self.postConnection(
+            to_user_handle_url, to_json=True)
         assert_that(first_status).is_equal_to(client.OK)
         assert_that(first_body).contains_key('timestamp')
-        second_status, second_body = self.postConnection(to_user_handle_url, to_json=True)
+        second_status, second_body = self.postConnection(
+            to_user_handle_url, to_json=True)
         assert_that(second_status).is_equal_to(client.OK)
         assert_that(second_body).contains_key('timestamp')
         assert_that(first_body).is_equal_to(second_body)
+
+    def send_connection_request_to_us_as(self, another_user):
+        another_user_auth = getAuthHeaders(
+            another_user['handle'], another_user['token'])
+        self.conn.request(
+            "POST", f"{connections_URL}/{self.handle}", headers=another_user_auth)
+        resp = self.conn.getresponse()
+        assert_that(resp.status).is_equal_to(client.OK)
+
+    def get_our_chats(self):
+        self.conn.request(
+            "GET", f"{Routes.BASE_PATH}/chats", headers=self.authed_headers)
+        our_chats_response = self.conn.getresponse()
+        assert_that(our_chats_response.status).is_equal_to(client.OK)
+        our_chats = json.loads(our_chats_response.read())
+        return our_chats
+
+    def disconnect_from(self, user_handle):
+        self.conn.request(
+            "DELETE", f"{connections_URL}/{user_handle}", headers=self.authed_headers)
+        resp = self.conn.getresponse()
+        assert_that(resp.status).is_equal_to(client.OK)
+
+    def testAddsUserToOurChatsIfTheyAlsoRequestedConnectionToUs(self):
+        user_5 = {
+            "handle": 'w/testHandle5',
+            "token": "testToken5",
+        }
+        self.disconnect_from(user_5["handle"])
+        self.send_connection_request_to_us_as(user_5)
+        user_5_as_chat = {
+            "user": {"handle": user_5["handle"]}
+        }
+        our_chats = self.get_our_chats()
+        assert_that(our_chats).does_not_contain(user_5_as_chat)
+
+        to_chat_5_url = f"{connections_URL}/{user_5['handle']}"
+        status, _ = self.postConnection(to_chat_5_url)
+        assert_that(status).is_equal_to(client.OK)
+        our_recent_chats = self.get_our_chats()
+        assert_that(our_recent_chats).contains(user_5_as_chat)

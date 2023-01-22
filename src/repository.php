@@ -193,11 +193,16 @@ namespace repository\database {
     }
     function add_connection_request(int $from_user_id, string $to_user_handle): array
     {
-      $db_result = $this->execute_result_query("CALL connect_users(?, ?)", "is", $from_user_id, $to_user_handle);
-      if (!isset($db_result[0])) {
+      $db_result = $this->execute_result_query(
+        "CALL connect_users(?, ?)",
+        "is",
+        $from_user_id,
+        $to_user_handle
+      );
+      $row = $db_result[0];
+      if ($row["created_at"] == NULL) {
         throw new NoConnectionRequestTimestampException();
       }
-      $row = $db_result[0];
 
       return array(
         "timestamp" => $row["created_at"],

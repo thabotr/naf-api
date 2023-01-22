@@ -263,7 +263,7 @@ Router::post("/connections", function ($body, $to_user_handle) use ($db_repo, $u
     header("HTTP/1.0 404 Not Found");
     echo "user " . $to_user_handle . " not found";
     exit;
-  } catch (Exception $e) {
+  } catch (Exception $_) {
     header("HTTP/1.0 500 Internal Server Error");
     exit;
   }

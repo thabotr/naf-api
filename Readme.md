@@ -226,3 +226,37 @@ for all valid requests
 Returns:
 
     Status: 400 Bad Request
+
+
+## ❌❌ 🔐 POST /messages
+sends a message to another user
+
+Request body:
+
+  ```json
+  {"text" : "<message text>", "toHandle": "<other_user_handle>"}
+  ```
+
+**valid message in request body**
+
+Returns:
+
+    Status: 201 Created
+
+**&lt;other_user_handle> is missing or not a &lt;validHandle>**
+
+Returns:
+
+    Status: 400 Bad Request
+
+**&lt;message text> is missing**
+
+Returns:
+
+    Status: 400 Bad Request
+
+**&lt;toHandle> refers to a user not connected to us**
+
+Returns:
+
+    Status: 404 Not Found

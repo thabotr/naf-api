@@ -264,8 +264,8 @@ class MessageFormatException extends Exception
 
 function validateMessage(array $message)
 {
-  if (!isset($message['toHandle'])) {
-    throw new MessageFormatException("message missing field 'toHandle'");
+  if (!isset($message['toHandle']) ||!Validator::is_valid_handle($message["toHandle"])) {
+    throw new MessageFormatException("message missing or has invalid field 'toHandle'");
   }
   if (!isset($message['text'])) {
     throw new MessageFormatException("message missing field 'text'");

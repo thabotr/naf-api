@@ -19,26 +19,11 @@ class Router
   static function get(string $route, callable $callback): void
   {
     if (Router::we_should_handle_request($route, "GET")) {
-      call_user_func($callback);
-      exit;
-    }
-  }
-  static function getParamed(string $route, callable $callback): void
-  {
-    if (Router::we_should_handle_request($route, "GET")) {
       call_user_func($callback, $_GET);
       exit;
     }
   }
-  static function delete(string $route, string $url_resource_to_delete_pattern, callable $callback): void
-  {
-    if (Router::we_should_handle_request($route, "DELETE")) {
-      preg_match("`" . $route . $url_resource_to_delete_pattern . "`", $_SERVER['REQUEST_URI'], $matches);
-      call_user_func($callback, $matches);
-      exit;
-    }
-  }
-  static function deleteParamed(string $route, callable $callback): void
+  static function delete(string $route, callable $callback): void
   {
     if (Router::we_should_handle_request($route, "DELETE")) {
       call_user_func($callback, $_GET);

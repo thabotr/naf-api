@@ -148,7 +148,7 @@ Router::post("/notifications", function ($request_body) use ($user_id, $handle, 
   exit;
 });
 
-Router::deleteParamed("/connections", function (array $params) use ($user_id, $db_repo) {
+Router::delete("/connections", function (array $params) use ($user_id, $db_repo) {
   if (!isset($params["toHandle"])) {
     header('HTTP/1.0 400 Bad Request');
     echo "missing URL parameter 'toHandle'";
@@ -162,25 +162,7 @@ Router::deleteParamed("/connections", function (array $params) use ($user_id, $d
   exit;
 });
 
-Router::delete(
-  "/connections",
-  "/(?<chat_handle>w/[a-zA-Z0-9-_]+)",
-  function (array $matched_patterns) use ($user_id, $db_repo) {
-    if (count($matched_patterns) == 0) {
-      header('HTTP/1.0 400 Bad Request');
-      echo "missing handle in url";
-      exit;
-    }
-    $chat_handle = $matched_patterns['chat_handle'];
-    $db_repo->delete_user_chat($user_id, $chat_handle);
-    header('HTTP/1.0 200 OK');
-    echo "disconnected from $chat_handle";
-    exit;
-  }
-);
-
-Router::delete("/profiles/my-profile", "", function (array $_) use ($user_id, $db_repo) {
-
+Router::delete("/profiles/my-profile", function () use ($user_id, $db_repo) {
   $db_repo->delete_user($user_id);
   header("HTTP/1.0 200 OK");
   echo "Notifications Are Free and so are you! Cheers😉";
@@ -209,7 +191,7 @@ Router::get("/chats", function () {
   exit;
 });
 
-Router::getParamed("/messages", function ($filters) use ($handle, $user_id, $db_repo) {
+Router::get("/messages", function (array $filters) use ($handle, $user_id, $db_repo) {
   $messages = $db_repo->get_user_messages($user_id);
 
   if (isset($filters['since'])) {
@@ -313,7 +295,6 @@ Router::post("/connections", function (string $to_handle) use ($db_repo, $user_i
     echo "user " . $to_handle . " not found";
     exit;
   } catch (Exception $_) {
-    var_dump($_);
     header("HTTP/1.0 500 Internal Server Error");
     exit;
   }

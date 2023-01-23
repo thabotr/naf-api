@@ -1,5 +1,5 @@
 # NAF API
-
+Provides an interface for registering, logging in, connecting with other users, and messaging with NAF.
 # Glossary
 - 🔐 endpoint requires basic authentication. To use username `testHandle` and password `testToken` by default as basic auth credentials
 - 🔒 endpoint passes credentials through basic authentication

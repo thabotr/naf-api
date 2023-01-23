@@ -25,7 +25,9 @@ class DBRepositoryTest extends TestCase
   protected $user_handle = 'w/testHandle';
   private function _addUserMessages(): void
   {
-    $this->db_repo->query("DELETE FROM message WHERE from_user = 1 OR to_user = 1");
+    $this->_setUpConnections();
+    $this->db_repo->query("DELETE FROM message WHERE from_user = $this->user_id OR " .
+      "to_user = $this->user_id");
     $this->db_repo->query("INSERT INTO message(text, from_user, to_user) VALUES ('t1', 1, 2)");
     $this->db_repo->query("INSERT INTO message(text, from_user, to_user) VALUES ('t2', 2, 1)");
     $this->db_repo->query("INSERT INTO message(text, from_user, to_user) VALUES ('t3', 1, 3)");
@@ -64,20 +66,21 @@ class DBRepositoryTest extends TestCase
   }
   private function _setUpConnections(): void
   {
-    $this->db_repo->query("DELETE FROM connection WHERE user_a = $this->user_id");
+    $this->db_repo->query("DELETE FROM connection WHERE user_a = $this->user_id OR " .
+      "user_b = $this->user_id");
     $this->db_repo->query("INSERT IGNORE INTO connection(user_a, user_b) VALUES ($this->user_id, 2)");
     $this->db_repo->query("INSERT IGNORE INTO connection(user_a, user_b) VALUES ($this->user_id, 3)");
   }
-  public function testGetUserChatsReturnsValidResult(): void
+  public function testGetProfilesForConnectedUsersReturnsCorrectResult(): void
   {
     $this->_setUpConnections();
-    $chats = $this->db_repo->get_user_chats($this->user_id);
-    $expected_chats = [
-      array("user" => array("handle" => "w/testHandle2")),
-      array("user" => array("handle" => "w/testHandle3"))
+    $profiles = $this->db_repo->get_profiles_for_connected_users($this->user_id);
+    $expected_profiles = [
+      array("handle" => "w/testHandle2"),
+      array("handle" => "w/testHandle3")
     ];
-    $this->assertArraySubset($expected_chats, $chats);
-    $this->assertArraySubset($chats, $expected_chats);
+    $this->assertArraySubset($expected_profiles, $profiles);
+    $this->assertArraySubset($profiles, $expected_profiles);
   }
 
   public function testDeleteUserChatDeletesConnectionBetweenUserAndChat(): void
@@ -267,8 +270,8 @@ class DBRepositoryTest extends TestCase
     $user_handle = "w/userToDelete";
     $user_id = 11;
     $user_token = "helloMyPW";
-    $this->db_repo->query("INSERT IGNORE INTO user (id, handle, token) VALUES ".
-    "($user_id, '$user_handle', '$user_token')");
+    $this->db_repo->query("INSERT IGNORE INTO user (id, handle, token) VALUES " .
+      "($user_id, '$user_handle', '$user_token')");
     $this->db_repo->delete_user($user_id);
     $sql_res = $this->db_repo->query(
       "SELECT COUNT(*) as count FROM user WHERE id = $user_id",

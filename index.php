@@ -209,32 +209,46 @@ Router::get("/chats", function () {
   exit;
 });
 
-Router::get("/messages", function () use ($handle, $user_id, $db_repo) {
+Router::getParamed("/messages", function ($filters) use ($handle, $user_id, $db_repo) {
   $messages = $db_repo->get_user_messages($user_id);
-  $filters = getallheaders();
-  $validation_result = Validator::validate_messages_filters($filters);
-  if ($validation_result !== '') {
-    header('HTTP/1.0 400 Bad Request');
-    echo $validation_result;
-    exit;
+  
+  if(isset($filters['since'])) {
+    try {
+      $since = new DateTime($filters['since'], new DateTimeZone("UTC"));
+      $messages = array_values(
+        array_filter(
+          $messages,
+          function ($msg) use ($since) {
+            $msg_time = new DateTime($msg['timestamp'], new DateTimeZone("UTC"));
+            $is_after_since = $msg_time > $since;
+            return $is_after_since;
+          }
+        )
+      );
+    } catch (Exception $_) {
+      header('HTTP/1.0 400 Bad Request');
+      echo "parameter 'since' should be a UTC time string of format '%Y-%m-%d %H:%M:%S'";
+      exit;
+    }
   }
-  if (isset($filters['since'])) {
-    $since = new DateTime($filters['since'], new DateTimeZone("UTC"));
-    $messages_to_user = array_values(
-      array_filter(
-        $messages,
-        function ($msg) use ($handle, $since) {
-          $msg_time = new DateTime($msg['timestamp'], new DateTimeZone("UTC"));
-          $is_to_user = $msg['toHandle'] == $handle;
-          $is_after_since = $msg_time > $since;
-          return $is_to_user && $is_after_since;
-        }
-      )
-    );
-    echo json_encode($messages_to_user);
-  } else {
-    echo json_encode($messages);
+
+  if(isset($filters['toMe'])) {
+    $toMe = $filters['toMe'] == 1;
+    if($toMe) {
+      $messages = array_values(
+        array_filter(
+          $messages,
+          function ($msg) use ($handle) {
+            $is_to_me = $msg["toHandle"] == $handle;
+            return $is_to_me;
+          }
+        )
+      );
+    }
   }
+
+  header("HTTP/1.0 200 OK");
+  echo json_encode($messages);
   exit;
 });
 

@@ -177,3 +177,52 @@ disconnects from a user or deletes a request to connect to a user
   Returns:
 
     Status: 400 Bad Request
+
+## ✅❌ 🔐 GET /messages?since=&lt;timestamp>&toMe=&lt;true if 1 otherwise false>
+all messsages sent to and from this user
+
+**url parameter &lt;since> is a valid**
+
+Returns:
+
+messages sent after &lt;since>
+
+    Status: 200 OK
+
+**url parameter &lt;toMe> is valid**
+
+Returns:
+
+only messages sent to user
+
+    Status: 200 OK
+
+**if any of the url parameters are omitted**
+
+Returns:
+
+messages without the application of the omitted filter
+
+    Status: 200 OK
+
+Body:
+
+for all valid requests
+
+  ```json
+  [
+    {
+      "text" : "<string>", 
+      "fromHandle" : "<handle_a>", 
+      "toHandle" : "<handle_b>", 
+      "timestamp" : "<timestamp>"
+    },
+    ...
+  ]
+  ```
+
+**if any of the url parameters are invalid**
+
+Returns:
+
+    Status: 400 Bad Request

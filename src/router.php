@@ -23,6 +23,13 @@ class Router
       exit;
     }
   }
+  static function getParamed(string $route, callable $callback): void
+  {
+    if (Router::we_should_handle_request($route, "GET")) {
+      call_user_func($callback, $_GET);
+      exit;
+    }
+  }
   static function delete(string $route, string $url_resource_to_delete_pattern, callable $callback): void
   {
     if (Router::we_should_handle_request($route, "DELETE")) {

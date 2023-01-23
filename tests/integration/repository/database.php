@@ -1,5 +1,4 @@
 <?php require_once(realpath(dirname(__FILE__) . '../../../../src/repository.php'));
-use phpDocumentor\Reflection\Types\Void_;
 use PHPUnit\Framework\TestCase;
 use repository\database\DBRepository;
 

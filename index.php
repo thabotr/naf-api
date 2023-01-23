@@ -149,7 +149,7 @@ Router::post("/notifications", function ($request_body) use ($user_id, $handle, 
 });
 
 Router::deleteParamed("/connections", function (array $params) use ($user_id, $db_repo) {
-  if(!isset($params["toHandle"])) {
+  if (!isset($params["toHandle"])) {
     header('HTTP/1.0 400 Bad Request');
     echo "missing URL parameter 'toHandle'";
     exit;
@@ -211,8 +211,8 @@ Router::get("/chats", function () {
 
 Router::getParamed("/messages", function ($filters) use ($handle, $user_id, $db_repo) {
   $messages = $db_repo->get_user_messages($user_id);
-  
-  if(isset($filters['since'])) {
+
+  if (isset($filters['since'])) {
     try {
       $since = new DateTime($filters['since'], new DateTimeZone("UTC"));
       $messages = array_values(
@@ -232,9 +232,9 @@ Router::getParamed("/messages", function ($filters) use ($handle, $user_id, $db_
     }
   }
 
-  if(isset($filters['toMe'])) {
+  if (isset($filters['toMe'])) {
     $toMe = $filters['toMe'] == 1;
-    if($toMe) {
+    if ($toMe) {
       $messages = array_values(
         array_filter(
           $messages,
@@ -264,7 +264,7 @@ class MessageFormatException extends Exception
 
 function validateMessage(array $message)
 {
-  if (!isset($message['toHandle']) ||!Validator::is_valid_handle($message["toHandle"])) {
+  if (!isset($message['toHandle']) || !Validator::is_valid_handle($message["toHandle"])) {
     throw new MessageFormatException("message missing or has invalid field 'toHandle'");
   }
   if (!isset($message['text'])) {
@@ -297,22 +297,23 @@ Router::post("/messages", function (string $body) {
   }
 });
 
-Router::post("/connections", function ($body, $to_user_handle) use ($db_repo, $user_id) {
-
-  if (!Validator::is_valid_handle($to_user_handle)) {
+Router::post("/connections", function (string $to_handle) use ($db_repo, $user_id) {
+  if (!Validator::is_valid_handle($to_handle)) {
     header("HTTP/1.0 400 Bad Request");
-    echo "invalid or missing handle in url. Expected handle matching 'w/[a-zA-Z0-9-_]+'";
+    echo "invalid or missing handle in request body. Expected handle matching " .
+      "'w/[a-zA-Z0-9-_]+'";
     exit;
   }
 
   $repo_result = array();
   try {
-    $repo_result = $db_repo->add_connection_request($user_id, $to_user_handle);
-  } catch ( NoConnectionRequestTimestampException $_) {
+    $repo_result = $db_repo->add_connection_request($user_id, $to_handle);
+  } catch (NoConnectionRequestTimestampException $_) {
     header("HTTP/1.0 404 Not Found");
-    echo "user " . $to_user_handle . " not found";
+    echo "user " . $to_handle . " not found";
     exit;
   } catch (Exception $_) {
+    var_dump($_);
     header("HTTP/1.0 500 Internal Server Error");
     exit;
   }
@@ -322,5 +323,4 @@ Router::post("/connections", function ($body, $to_user_handle) use ($db_repo, $u
 
 header('HTTP/1.0 404 Not Found');
 exit;
-
 ?>

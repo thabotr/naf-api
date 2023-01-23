@@ -111,9 +111,13 @@ Body:
   ]
   ```
 
-## ✅❌ 🔐 POST /connections/&lt;toHandle>
+## ✅❌ 🔐 POST /connections
 
 Creates a request to connect to another user. If two users post these to each other then they will be connected.
+
+Request body:
+
+    <toHandle>
 
 **&lt;toHandle> is a &lt;validHandle>**
 
@@ -129,7 +133,7 @@ Creates a request to connect to another user. If two users post these to each ot
 
   timestamp indicating the first time that this connection request was sent or the time at which the users were connected
   ```json
-      {"timestamp" : "<timestamp>"}
+  {"timestamp" : "<timestamp>"}
   ```
 
 **&lt;toHandle> missing or is not a &lt;validHandle>**

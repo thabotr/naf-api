@@ -1,12 +1,11 @@
-### Back-end repository integration testing
-  Download [PHPUnit](https://phpunit.de/index.html) phar and place it in project root
-    
-  Run 
-    
-    php .\phpunit-6.5.14.phar --verbose .\<path\to\test\file>.php
-  
-  from the php tests directory
-### API e2e testing
-These ensure that the back-end's endpoints are working as expected
+## Requirements
 
-    python .\tests\e2e-tests\resource\__main___test.py [-p to run against PROD]
+- PHP 7.4.2
+
+## API tests
+
+Download [PHPUnit](https://phpunit.de/index.html) phar and place it in project tests directory
+  
+Run from within tests directory:
+  
+    php .\phpunit-6.5.14.phar --verbose .\<path\to\test\file>.php

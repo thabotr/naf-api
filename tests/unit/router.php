@@ -1,6 +1,6 @@
 <?php
 
-require_once(realpath(dirname(__FILE__) . '/../src/router.php'));
+require_once(realpath(dirname(__FILE__) . '../../../src/router.php'));
 use PHPUnit\Framework\TestCase;
 use function resource\route_matches_uri;
 

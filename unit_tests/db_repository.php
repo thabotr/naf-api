@@ -281,5 +281,46 @@ class DBRepositoryTest extends TestCase
     $user_deleted = $db_result['count'] == 0;
     $this->assertTrue($user_deleted);
   }
+
+  public function _setTestUsers(array $ids): void
+  {
+    foreach( $ids as $id) {
+      if( $id == 1){
+        $this->db_repo->query("INSERT IGNORE INTO user(id, handle, token) VALUES ". "
+        ($id, 'w/testHandle', 'testToken')");
+      } else {
+        $this->db_repo->query("INSERT IGNORE INTO user(id, handle, token) VALUES " . "
+        ($id, 'w/testHandle$id', 'testToken$id')");
+      }
+    }
+  }
+
+  public function _clearConnectionRequests(): void
+  {
+    $this->db_repo->query("DELETE FROM connection_request " .
+      "WHERE from_user = $this->user_id");
+  }
+
+  public function _setConnectionRequestsTo(array $ids): void
+  {
+    foreach( $ids as $id) {
+      $this->db_repo->query("INSERT INTO connection_request(from_user, to_user) " .
+        "VALUES ($this->user_id, $id)");
+    }
+  }
+  public function testGetConnectionRequestsReturnsCorrectResults(): void
+  {
+    $this->_setTestUsers([$this->user_id, 7, 8, 9]);
+    $this->_clearConnectionRequests();
+    $this->_setConnectionRequestsTo([7, 8, 9]);
+    $connection_requests = $this->db_repo->get_connection_requests($this->user_id);
+    $handles = array_map(function($cr) {
+      return $cr['handle'];
+    }, $connection_requests);
+    $expected_handles = ["w/testHandle7", "w/testHandle8", "w/testHandle9"];
+    foreach( $expected_handles as $handle) {
+      $this->assertContains($handle, $handles);
+    }
+  }
 }
 ?>

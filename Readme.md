@@ -17,7 +17,23 @@ Returns:
 
     Status: 200 OK
 
-## ✅❌ 🔐 GET /profiles
+## ✅❌ 🔐 GET /profiles/connected-users
+the profiles for all connected users
+
+Returns:
+
+    Status: 200 OK
+
+Body:
+
+  ```json
+  [
+    {"handle": "<handle_1>"}, 
+    {"handle": "<handle_2>"},
+    ...
+  ]
+  ```
+## ✅❌ 🔐 GET /profiles/my-profile
 Returns:
 
     Status: 200 OK
@@ -28,7 +44,7 @@ Body:
   {"handle" : "<user_handle>"}
   ```
 
-## ✅❌ 🔒 POST /profiles
+## ✅❌ 🔒 POST /profiles/my-profile
 register a new user
 
 **&lt;username of basic auth> is a &lt;validHandle> which is not yet registered AND &lt;password of basic auth> is a string of length 8 or greater**
@@ -71,15 +87,15 @@ Returns:
 
     Status: 409 Conflict
 
-## ✅❌ 🔐 DELETE /profiles
+## ✅❌ 🔐 DELETE /profiles/my-profile
 deregister user
 
 Returns:
 
     Status: 200 OK
 
-## ❌❌ 🔐 GET /connections
-all user connections seperated by 'requested' and 'connected' states
+## ✅❌ 🔐 GET /connections/pending
+all connection pending connection requests sent by user
 
 Returns:
 
@@ -88,10 +104,11 @@ Returns:
 Body:
 
   ```json
-  {
-    "requested" : ["<handle_a>", "<handle_b>", ...],
-    "connected" : ["handle_1", "<handle_2>", ...]
-  }
+  [
+    { "toHandle": "handle_1", "timestamp" : "<timestamp>"},
+    { "toHandle": "handle_2", "timestamp" : "<timestamp>"},
+    ...
+  ]
   ```
 
 ## ✅❌ 🔐 POST /connections/&lt;toHandle>
@@ -136,4 +153,10 @@ Creates a request to connect to another user. If two users post these to each ot
 
       Status: 404 Not Found
 
-  
+## ❌❌ 🔐 DELETE /connections?toHandle=&lt;validHandle>
+
+disconnects from a user or deletes a request to connect to a user
+
+Returns:
+
+    Status: 200 OK

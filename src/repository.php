@@ -86,6 +86,21 @@ namespace repository\database {
       return $messages;
     }
 
+    function get_connection_requests(int $user_id): array
+    {
+      $stmt = <<<'SQL'
+        SELECT 
+          user.handle,
+          connection_request.created_at as `timestamp`
+        FROM connection_request
+        INNER JOIN user
+        ON connection_request.to_user = user.id
+        WHERE from_user = ?
+      SQL;
+      $result = $this->execute_result_query($stmt, "i", $user_id);
+      return $result;
+    }
+
     function add_user(array $new_user)
     {
       $stmt = $this->prepare("INSERT INTO user(handle, token) VALUES (?, ?)");
@@ -139,6 +154,22 @@ namespace repository\database {
         $row_per_chat
       );
       return $chats;
+    }
+    function get_profiles_for_connected_users(int $user_id): array
+    {
+      $stmt = <<<'SQL'
+      WITH friend
+        AS (
+          SELECT user_a as id FROM connection WHERE user_b = ?
+          UNION
+          SELECT user_b as id FROM connection WHERE user_a = ?
+        )
+      SELECT user.handle FROM user
+      INNER JOIN friend
+      ON friend.id = user.id
+      SQL;
+      $db_result = $this->execute_result_query($stmt, "ii", $user_id, $user_id);
+      return $db_result;
     }
     function delete_user_chat(int $user_id, string $chat_handle): void
     {

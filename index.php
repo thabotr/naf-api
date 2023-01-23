@@ -48,7 +48,7 @@ function validate_handle(string $handle): void
   }
 }
 
-Router::post("/profiles", function () {
+Router::post("/profiles/my-profile", function () {
   global $handle, $token, $db_repo;
   validate_handle($handle);
   validate_token($token);
@@ -165,11 +165,25 @@ Router::delete(
   }
 );
 
-Router::delete("/profiles", "", function (array $_) use ($user_id, $db_repo) {
+Router::delete("/profiles/my-profile", "", function (array $_) use ($user_id, $db_repo) {
 
   $db_repo->delete_user($user_id);
   header("HTTP/1.0 200 OK");
   echo "Notifications Are Free and so are you! Cheers😉";
+  exit;
+});
+
+Router::get("/profiles/connected-users", function () use ($user_id, $db_repo) {
+  $profiles = $db_repo->get_profiles_for_connected_users($user_id);
+  echo json_encode($profiles);
+  header('HTTP/1.0 200 OK');
+  exit;
+});
+
+Router::get("/connections/pending", function () use ($user_id, $db_repo) {
+  $connection_requests = $db_repo->get_connection_requests($user_id);
+  echo json_encode($connection_requests);
+  header('HTTP/1.0 200 OK');
   exit;
 });
 
@@ -210,7 +224,7 @@ Router::get("/messages", function () use ($handle, $user_id, $db_repo) {
   exit;
 });
 
-Router::get("/profiles", function () use ($profile) {
+Router::get("/profiles/my-profile", function () use ($profile) {
   echo json_encode($profile);
   exit;
 });

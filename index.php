@@ -148,6 +148,20 @@ Router::post("/notifications", function ($request_body) use ($user_id, $handle, 
   exit;
 });
 
+Router::deleteParamed("/connections", function (array $params) use ($user_id, $db_repo) {
+  if(!isset($params["toHandle"])) {
+    header('HTTP/1.0 400 Bad Request');
+    echo "missing URL parameter 'toHandle'";
+    exit;
+  }
+  $disconnect_handle = $params["toHandle"];
+  validate_handle($disconnect_handle);
+  $db_repo->abandon_user($user_id, $disconnect_handle);
+  header('HTTP/1.0 200 OK');
+  echo "abandoned user $disconnect_handle";
+  exit;
+});
+
 Router::delete(
   "/connections",
   "/(?<chat_handle>w/[a-zA-Z0-9-_]+)",

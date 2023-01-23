@@ -31,6 +31,13 @@ class Router
       exit;
     }
   }
+  static function deleteParamed(string $route, callable $callback): void
+  {
+    if (Router::we_should_handle_request($route, "DELETE")) {
+      call_user_func($callback, $_GET);
+      exit;
+    }
+  }
 
   static function post(string $route, callable $callback): void
   {

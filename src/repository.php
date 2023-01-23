@@ -60,6 +60,24 @@ namespace repository\database {
       return $rows;
     }
 
+    function abandon_user(int $user_id, string $handle): void
+    {
+      $this->execute_typed_query(
+        "DELETE FROM connection WHERE user_a = ? AND user_b IN " .
+        "(SELECT id FROM user WHERE handle = ?)",
+        "is",
+        $user_id,
+        $handle
+      );
+      $this->execute_typed_query(
+        "DELETE FROM connection_request WHERE from_user = ? AND to_user IN " .
+        "(SELECT id FROM user WHERE handle = ?)",
+        "is",
+        $user_id,
+        $handle
+      );
+    }
+
     function delete_user(int $user_id): void
     {
       $this->execute_typed_query("DELETE FROM user WHERE id = ?", "i", $user_id);

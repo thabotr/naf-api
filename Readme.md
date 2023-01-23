@@ -153,10 +153,27 @@ Creates a request to connect to another user. If two users post these to each ot
 
       Status: 404 Not Found
 
-## ❌❌ 🔐 DELETE /connections?toHandle=&lt;validHandle>
+## ✅❌ 🔐 DELETE /connections?toHandle=&lt;validHandle>
 
 disconnects from a user or deletes a request to connect to a user
 
-Returns:
+**&lt;toHandle> is a &lt;validHandle>**
 
+  Example:
+
+    w/testHandle2
+
+  Returns:
+  
     Status: 200 OK
+
+
+**&lt;toHandle> missing or is not a &lt;validHandle>**
+
+  Examples:
+
+    w/
+    w/!testHandle2
+  Returns:
+
+    Status: 400 Bad Request

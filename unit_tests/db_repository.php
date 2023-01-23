@@ -284,9 +284,9 @@ class DBRepositoryTest extends TestCase
 
   public function _setTestUsers(array $ids): void
   {
-    foreach( $ids as $id) {
-      if( $id == 1){
-        $this->db_repo->query("INSERT IGNORE INTO user(id, handle, token) VALUES ". "
+    foreach ($ids as $id) {
+      if ($id == 1) {
+        $this->db_repo->query("INSERT IGNORE INTO user(id, handle, token) VALUES " . "
         ($id, 'w/testHandle', 'testToken')");
       } else {
         $this->db_repo->query("INSERT IGNORE INTO user(id, handle, token) VALUES " . "
@@ -303,7 +303,7 @@ class DBRepositoryTest extends TestCase
 
   public function _setConnectionRequestsTo(array $ids): void
   {
-    foreach( $ids as $id) {
+    foreach ($ids as $id) {
       $this->db_repo->query("INSERT INTO connection_request(from_user, to_user) " .
         "VALUES ($this->user_id, $id)");
     }
@@ -314,13 +314,52 @@ class DBRepositoryTest extends TestCase
     $this->_clearConnectionRequests();
     $this->_setConnectionRequestsTo([7, 8, 9]);
     $connection_requests = $this->db_repo->get_connection_requests($this->user_id);
-    $handles = array_map(function($cr) {
+    $handles = array_map(function ($cr) {
       return $cr['handle'];
     }, $connection_requests);
     $expected_handles = ["w/testHandle7", "w/testHandle8", "w/testHandle9"];
-    foreach( $expected_handles as $handle) {
+    foreach ($expected_handles as $handle) {
       $this->assertContains($handle, $handles);
     }
+  }
+
+  public function _setConnectionsTo(array $ids): void
+  {
+    foreach ($ids as $id) {
+      $this->db_repo->query("INSERT IGNORE connection(user_a, user_b) VALUES " .
+        "($this->user_id, $id)");
+    }
+  }
+
+  public function _clearConnectionsTo(array $ids): void
+  {
+    foreach ($ids as $id) {
+      $this->db_repo->query("DELETE FROM connection WHERE user_a = $this->user_id AND " .
+        "user_b = $id");
+    }
+  }
+
+  public function testAbandonUserDeletesConnectionToAUser(): void
+  {
+    $this->_setTestUsers([$this->user_id, 12]);
+    $this->_clearConnectionsTo([12]);
+    $this->_setConnectionsTo([12]);
+    $connected_to_user_12 = $this->_usersConnected($this->user_id, 12);
+    $this->assertTrue($connected_to_user_12);
+    $this->db_repo->abandon_user($this->user_id, "w/testHandle12");
+    $not_connected_to_user_3 = !$this->_usersConnected($this->user_id, 12);
+    $this->assertTrue($not_connected_to_user_3);
+  }
+  public function testAbandonUserDeletesConnectionRequestToAUser(): void
+  {
+    $this->_setTestUsers([$this->user_id, 14]);
+    $this->_clearConnectionRequests();
+    $this->_setConnectionRequestsTo([14]);
+    $request_to_14 = $this->_checkConnectionRequestsBetween($this->user_id, 14)["count"] == 1;
+    $this->assertTrue($request_to_14);
+    $this->db_repo->abandon_user($this->user_id, "w/testHandle14");
+    $no_request_to_14 = $this->_checkConnectionRequestsBetween($this->user_id, 14)["count"] == 0;
+    $this->assertTrue($no_request_to_14);
   }
 }
 ?>

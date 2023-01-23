@@ -48,8 +48,7 @@ function validate_handle(string $handle): void
   }
 }
 
-Router::post("/profiles/my-profile", function () {
-  global $handle, $token, $db_repo;
+Router::post("/profiles/my-profile", function () use($handle, $token, $db_repo) {
   validate_handle($handle);
   validate_token($token);
   $new_user = array(
@@ -179,14 +178,6 @@ Router::get("/profiles/connected-users", function () use ($user_id, $db_repo) {
 Router::get("/connections/pending", function () use ($user_id, $db_repo) {
   $connection_requests = $db_repo->get_connection_requests($user_id);
   echo json_encode($connection_requests);
-  header('HTTP/1.0 200 OK');
-  exit;
-});
-
-Router::get("/chats", function () {
-  global $user_id, $db_repo;
-  $chats = $db_repo->get_user_chats($user_id);
-  echo json_encode($chats);
   header('HTTP/1.0 200 OK');
   exit;
 });

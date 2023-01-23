@@ -1,6 +1,6 @@
 <?php
 namespace repository\database {
-  require_once(realpath(dirname(__FILE__) . './validations.php'));
+  require_once(realpath(dirname(__FILE__) . '/validations.php'));
   use mysqli;
   use mysqli_sql_exception;
   use mysqli_stmt;

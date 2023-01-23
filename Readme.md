@@ -228,7 +228,7 @@ Returns:
     Status: 400 Bad Request
 
 
-## ❌❌ 🔐 POST /messages
+## ✅❌ 🔐 POST /messages
 sends a message to another user
 
 Request body:

@@ -1,6 +1,13 @@
-## Requirements
+TODO start developing on containers so the DEV setup is portable
 
-- PHP 7.4.2
+    - get unit tests running in docker
+    - get docker to serve api over ipv4 so the front-end app can be able to run against docker
+## Start development server
+
+    docker compose up
+
+- check the server for a pulse by visiting `http://[::1]:80/naf/api/ping`
+- any of the other endpoints in the [Readme](./Readme.md) will then be run against the base path `http://[::1]:80/naf/api/`
 
 ## API tests
 

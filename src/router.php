@@ -39,5 +39,12 @@ class Router
       exit;
     }
   }
+  
+  static function sendJSON(array $data) {
+    header("Content-Type: application/json");
+    $resp_str = json_encode($data);
+    header("Content-Length: " . strlen($resp_str));
+    exit;
+  }
 }
 ?>

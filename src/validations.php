@@ -9,6 +9,12 @@ class NoConnectionRequestTimestampException extends Exception {
     parent::__construct("No connection request timestamp");
   }
 }
+class UserNotFoundException extends Exception {
+  public function __construct()
+  {
+    parent::__construct("Requested user not found");
+  }
+}
 
 class Validator
 {

@@ -4,6 +4,7 @@ require_once(realpath(dirname(__FILE__) . '/src/router.php'));
 require_once(realpath(dirname(__FILE__) . '/src/validations.php'));
 
 use middleware\rules\NoConnectionRequestTimestampException;
+use middleware\rules\UserNotFoundException;
 use repository\database\DBRepository;
 use resource\Router;
 use middleware\rules\Validator;
@@ -67,8 +68,15 @@ Router::post("/profiles/my-profile", function () use($handle, $token, $db_repo) 
   exit;
 });
 
-
-[$user_id, $profile] = $db_repo->get_user_id_and_profile($handle, $token);
+$user_id;
+$profile;
+try
+{
+  [$user_id, $profile] = $db_repo->get_user_id_and_profile($handle, $token);
+} catch( UserNotFoundException $_) {
+  header("HTTP/1.0 401 Unauthorized");
+  exit;
+}
 
 class EventType
 {
@@ -226,7 +234,10 @@ Router::get("/messages", function (array $filters) use ($handle, $user_id, $db_r
 });
 
 Router::get("/profiles/my-profile", function () use ($profile) {
-  echo json_encode($profile);
+  header("Content-Type: application/json");
+  $resp_str = json_encode($profile);
+  header("Content-Length: " . strlen($resp_str));
+  echo $resp_str;
   exit;
 });
 

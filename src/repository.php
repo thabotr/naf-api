@@ -1,5 +1,6 @@
 <?php
 namespace repository\database {
+use middleware\rules\UserNotFoundException;
   require_once(realpath(dirname(__FILE__) . '/validations.php'));
   use mysqli;
   use mysqli_sql_exception;
@@ -93,8 +94,7 @@ namespace repository\database {
       $stmt->bind_param("ss", $handle, $token);
       $rows = DBRepository::getResultArray($stmt);
       if (count($rows) !== 1) {
-        header('HTTP/1.0 401 Unauthorized');
-        exit;
+        throw new UserNotFoundException();
       }
       return [$rows[0]['id'], array("handle" => $handle)];
     }

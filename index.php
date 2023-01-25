@@ -162,7 +162,7 @@ Router::delete("/connections", function (array $params) use ($user_id, $db_repo)
 });
 
 Router::delete("/profiles/my-profile", function () use ($user_id, $db_repo) {
-  $db_repo->delete_user($user_id);
+  $db_repo->delete_user_account($user_id);
   header("HTTP/1.0 200 OK");
   echo "Notifications Are Free and so are you! Cheers😉";
   exit;

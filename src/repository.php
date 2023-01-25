@@ -11,55 +11,6 @@ namespace repository\database {
 
   class DBRepository extends mysqli
   {
-    protected static function getResultArray(mysqli_stmt $statement): array
-    {
-      $statement->execute();
-      $result = $statement->get_result();
-      $rows = $result->fetch_all(MYSQLI_ASSOC);
-      return $rows;
-    }
-
-    protected function execute_typed_query(
-      string $query,
-      string $bind_types,
-      &$bind_var,
-      &...$bind_vars
-    )
-    {
-      $prepped_stmt = $this->prepare($query);
-      if (!$prepped_stmt) {
-        throw new Exception($this->error);
-      }
-      $is_prepped = $prepped_stmt->bind_param($bind_types, $bind_var, ...$bind_vars);
-      if (!$is_prepped) {
-        throw new Exception($this->error);
-      }
-      $is_exec = $prepped_stmt->execute();
-      if (!$is_exec) {
-        throw new Exception($this->error);
-      }
-      return $prepped_stmt;
-    }
-
-    protected function execute_result_query(
-      string $query,
-      string $bind_types,
-      &$bind_var,
-      &...$bind_vars
-    )
-    {
-      $statement = $this->execute_typed_query($query, $bind_types, $bind_var, ...$bind_vars);
-      if (!$statement) {
-        throw new Exception($this->error);
-      }
-      $result = $statement->get_result();
-      if (!$result) {
-        throw new Exception($this->error);
-      }
-      $rows = $result->fetch_all(MYSQLI_ASSOC);
-      return $rows;
-    }
-
     function abandon_user(int $user_id, string $handle): void
     {
       $this->execute_typed_query(
@@ -78,7 +29,7 @@ namespace repository\database {
       );
     }
 
-    function delete_user(int $user_id): void
+    function delete_user_account(int $user_id): void
     {
       $this->execute_typed_query("DELETE FROM user WHERE id = ?", "i", $user_id);
     }
@@ -189,7 +140,7 @@ namespace repository\database {
       $db_result = $this->execute_result_query($stmt, "ii", $user_id, $user_id);
       return $db_result;
     }
-    function delete_user_chat(int $user_id, string $chat_handle): void
+    function delete_user_account_chat(int $user_id, string $chat_handle): void
     {
       $stmt = <<<'SQL'
       DELETE FROM connection
@@ -261,6 +212,55 @@ namespace repository\database {
       return array(
         "timestamp" => $row["created_at"],
       );
+    }
+
+    protected static function getResultArray(mysqli_stmt $statement): array
+    {
+      $statement->execute();
+      $result = $statement->get_result();
+      $rows = $result->fetch_all(MYSQLI_ASSOC);
+      return $rows;
+    }
+
+    protected function execute_typed_query(
+      string $query,
+      string $bind_types,
+      &$bind_var,
+      &...$bind_vars
+    )
+    {
+      $prepped_stmt = $this->prepare($query);
+      if (!$prepped_stmt) {
+        throw new Exception($this->error);
+      }
+      $is_prepped = $prepped_stmt->bind_param($bind_types, $bind_var, ...$bind_vars);
+      if (!$is_prepped) {
+        throw new Exception($this->error);
+      }
+      $is_exec = $prepped_stmt->execute();
+      if (!$is_exec) {
+        throw new Exception($this->error);
+      }
+      return $prepped_stmt;
+    }
+
+    protected function execute_result_query(
+      string $query,
+      string $bind_types,
+      &$bind_var,
+      &...$bind_vars
+    )
+    {
+      $statement = $this->execute_typed_query($query, $bind_types, $bind_var, ...$bind_vars);
+      if (!$statement) {
+        throw new Exception($this->error);
+      }
+      $result = $statement->get_result();
+      if (!$result) {
+        throw new Exception($this->error);
+      }
+      $rows = $result->fetch_all(MYSQLI_ASSOC);
+      return $rows;
     }
   }
 }

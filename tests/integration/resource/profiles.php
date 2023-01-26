@@ -4,11 +4,10 @@ namespace resource;
 require_once(realpath(dirname(__FILE__) . '/../../../vendor/autoload.php'));
 require_once(realpath(dirname(__FILE__) . '/endpoints.php'));
 
-use Closure;
 use middleware\rules\UserNotFoundException;
 use resource\HTTPResourceTests;
 
-class GETProfilesTests extends HTTPResourceTests
+class ProfilesEndpointTests extends HTTPResourceTests
 {
 
   public function testGetProfilesConnectedUsersReturnsProfilesForConnectedUsers(): void
@@ -99,21 +98,6 @@ class GETProfilesTests extends HTTPResourceTests
     $this->assertEquals(200, $response->getStatusCode());
     $this->assertUserNotRegistered($user);
     $this->clearUser($user);
-  }
-
-  protected function setUserConnections(): void
-  {
-    foreach($this->others as $user) {
-      $this->repo->add_connection_request($this->me->id, $user->handle);
-      $this->repo->add_connection_request($user->id, $this->me->handle);
-    }
-  }
-
-  protected function clearUserConnections(): void
-  {
-    foreach($this->others as $user) {
-      $this->repo->abandon_user($this->me->id, $user->handle);
-    }
   }
 
   private function assertUserNotRegistered(Profile $user): void

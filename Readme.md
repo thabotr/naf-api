@@ -105,8 +105,8 @@ Body:
 
   ```json
   [
-    { "toHandle": "handle_1", "timestamp" : "<timestamp>"},
-    { "toHandle": "handle_2", "timestamp" : "<timestamp>"},
+    { "handle": "handle_1", "timestamp" : "<timestamp>"},
+    { "handle": "handle_2", "timestamp" : "<timestamp>"},
     ...
   ]
   ```

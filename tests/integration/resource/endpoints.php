@@ -42,7 +42,7 @@ class HTTPResourceTests extends TestCase
   public $me;
   public $others;
 
-  function log()
+  function logRequest()
   {
       return function (callable $handler) {
           return function (
@@ -69,7 +69,7 @@ class HTTPResourceTests extends TestCase
     );
     $stack = new HandlerStack();
     $stack->setHandler(new CurlHandler());
-    $stack->push($this->log());
+    $stack->push($this->logRequest());
 
     $this->client = new Client([
       'base_uri' => "http://localhost:8000/naf/api",
@@ -117,6 +117,21 @@ class HTTPResourceTests extends TestCase
   protected function clearUser(Profile $user): void
   {
     $this->repo->delete_user_account($user->id);
+  }
+
+  protected function clearUserConnections(): void
+  {
+    foreach($this->others as $user) {
+      $this->repo->abandon_user($this->me->id, $user->handle);
+    }
+  }
+
+  protected function setUserConnections(): void
+  {
+    foreach($this->others as $user) {
+      $this->repo->add_connection_request($this->me->id, $user->handle);
+      $this->repo->add_connection_request($user->id, $this->me->handle);
+    }
   }
 }
 

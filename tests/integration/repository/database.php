@@ -4,6 +4,24 @@ use repository\database\DBRepository;
 
 class DBRepositoryTest extends TestCase
 {
+  private function userHasMessages(int $user_id): bool
+  {
+    $result = $this->db_repo->execute_result_query(
+      "SELECT COUNT(*) AS count FROM message WHERE from_user = ? OR to_user = ?",
+      "ii", 
+      $user_id,
+      $user_id
+    );
+    return $result[0]['count'] > 0;
+  }
+  public function testDeleteUserMessagesRemovesAllMessagesToAndFromUser():void
+  {
+    $this->_addUserMessages();
+    $user_id = 1;
+    $this->assertTrue($this->userHasMessages($user_id));
+    $this->db_repo->delete_user_messages($user_id);
+    $this->assertFalse($this->userHasMessages($user_id));
+  }
   public function testGetUserMessagesReturnsAllTheUsersMessages(): void
   {
     $user_id = 1;
@@ -142,6 +160,7 @@ class DBRepositoryTest extends TestCase
   public function testAddConnectionRequestReturnsTimestampOnAlreadyConnected(): void
   {
     $to_connected_user_id = 2;
+    $this->_setConnectionsTo([$to_connected_user_id]);
     $to_connected_user_handle = "w/testHandle2";
     $repo_result = $this->db_repo->add_connection_request(
       $this->from_user_id,
@@ -296,6 +315,7 @@ class DBRepositoryTest extends TestCase
   }
   protected function tearDown()
   {
+    $this->db_repo->query("DELETE FROM user WHERE id IN (1,2,3,4,5)");
     $this->db_repo->close();
   }
 
@@ -326,7 +346,7 @@ class DBRepositoryTest extends TestCase
   }
   protected $from_user_id = 1;
   protected $to_user_id = 4;
-  protected $to_user_handle = "w/testHandlle4";
+  protected $to_user_handle = "w/testHandle4";
   private function _clearConnectionRequest(): void
   {
     $this->db_repo->query("DELETE FROM connection_request WHERE to_user = $this->to_user_id");

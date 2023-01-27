@@ -2,7 +2,7 @@
 namespace resource;
 
 require_once(realpath(dirname(__FILE__) . '/../../../vendor/autoload.php'));
-require_once(realpath(dirname(__FILE__) . '/endpoints.php'));
+require_once(realpath(dirname(__FILE__) . '/common.php'));
 
 use Exception;
 use resource\HTTPResourceTests;

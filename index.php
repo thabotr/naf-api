@@ -193,22 +193,22 @@ Router::get("/connections/pending", function () use ($user_id, $db_repo) {
 Router::get("/messages", function (array $filters) use ($handle, $user_id, $db_repo) {
   $messages = $db_repo->get_user_messages($user_id);
 
-  if (isset($filters['since'])) {
+  if (isset($filters['after'])) {
     try {
-      $since = new DateTime($filters['since'], new DateTimeZone("UTC"));
+      $after = new DateTime($filters['after'], new DateTimeZone("UTC"));
       $messages = array_values(
         array_filter(
           $messages,
-          function ($msg) use ($since) {
+          function ($msg) use ($after) {
             $msg_time = new DateTime($msg['timestamp'], new DateTimeZone("UTC"));
-            $is_after_since = $msg_time > $since;
-            return $is_after_since;
+            $is_after = $msg_time > $after;
+            return $is_after;
           }
         )
       );
     } catch (Exception $_) {
       header('HTTP/1.0 400 Bad Request');
-      echo "parameter 'since' should be a UTC time string of format '%Y-%m-%d %H:%M:%S'";
+      echo "parameter 'after' should be a UTC time string of format '%Y-%m-%d %H:%M:%S'";
       exit;
     }
   }

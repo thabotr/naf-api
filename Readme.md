@@ -182,14 +182,14 @@ disconnects from a user or deletes a request to connect to a user
 
     Status: 400 Bad Request
 
-## ✅✅ 🔐 GET /messages?since=&lt;timestamp>&toMe=&lt;true if 1 otherwise false>
+## ✅✅ 🔐 GET /messages?after=&lt;timestamp>&toMe=&lt;true if 1 otherwise false>
 all messsages sent to and from this user
 
-**url parameter &lt;since> is a valid**
+**url parameter &lt;after> is a valid**
 
 Returns:
 
-messages sent after &lt;since>
+messages sent after &lt;after>
 
     Status: 200 OK
 

@@ -56,6 +56,16 @@ use middleware\rules\UserNotFoundException;
       return $messages;
     }
 
+    function delete_user_messages(int $user_id): void
+    {
+      $this->execute_typed_query(
+        "DELETE FROM message WHERE from_user = ? OR to_user = ?",
+        "ii",
+        $user_id,
+        $user_id,
+      );
+    }
+
     function get_connection_requests(int $user_id): array
     {
       $stmt = <<<'SQL'
@@ -244,7 +254,7 @@ use middleware\rules\UserNotFoundException;
       return $prepped_stmt;
     }
 
-    protected function execute_result_query(
+    public function execute_result_query(
       string $query,
       string $bind_types,
       &$bind_var,

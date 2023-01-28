@@ -14,8 +14,6 @@ TODO complete endpoint tests
 
 ## Running tests
 
-Download [PHPUnit](https://phpunit.de/index.html) phar and place it in project tests directory
-  
-Run from within tests directory:
-  
-    php .\phpunit-6.5.14.phar --verbose .\<path\to\test\file>.php
+From `<rootDir>/tests/` directory run
+
+    ..\vendor\bin\phpunit --testdox ./<path/tests/directory>/

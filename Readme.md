@@ -9,6 +9,16 @@ Provides an interface for registering, logging in, connecting with other users, 
 - ✅❌ endpoint DEV validated
 - ✅✅ endpoint PROD validated
 
+# Run against different environments
+
+ - PROD
+
+    https://www.thaborlabs.com/naf/api
+
+- DEV
+
+    http://localhost:8000/naf/api
+
 # Endpoints
 ## ✅✅ GET /ping
 use for server liveness probe
@@ -265,7 +275,7 @@ Returns:
 
     Status: 404 Not Found
 
-## ❌❌ 🔐 GET /notifications?messagesAfter=&lt;timestamp>&connectionsAfter=&lt;timestamp>
+## ✅✅ 🔐 GET /notifications?messagesAfter=&lt;timestamp>&connectionsAfter=&lt;timestamp>
 returns a bit string where the first bit represents the presence of user messages dated after &lt;messagesAfter> and the second bit represents the presence of user connections dated after &lt;connectionsAfter>
 
 **&lt;messagesAfter> is a &lt;timestamp> and &lt;connectionsAfter> is a &lt;timestamp>**

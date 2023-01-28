@@ -9,7 +9,7 @@ SQL SECURITY DEFINER
 COMMENT ''
 BEGIN
 	DECLARE to_user INT DEFAULT NULL;
-	DECLARE created_at TIMESTAMP DEFAULT NULL;
+	DECLARE created_at TIMESTAMP(6) DEFAULT NULL;
 	
   `body`:
   BEGIN
@@ -57,7 +57,7 @@ BEGIN
     END IF;
 
     -- we create the connection request
-    SET created_at = (SELECT CURRENT_TIMESTAMP());
+    SET created_at = (SELECT CURRENT_TIMESTAMP(6));
     INSERT INTO connection_request(created_at, from_user, to_user)
     VALUES( created_at, from_user, to_user);
   END `body`;

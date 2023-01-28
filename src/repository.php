@@ -12,6 +12,38 @@ use middleware\rules\UserNotFoundException;
 
   class DBRepository extends mysqli
   {
+    function datetime_now(): string
+    {
+      $res = $this->query("SELECT CURRENT_TIMESTAMP(6) AS `now`");
+      return $res->fetch_array()['now'];
+    }
+    function count_records_created_after(
+      $user_id,
+      \DateTimePerRelation $dateTimePerRelation
+    ): \CountPerRelation
+    {
+      $stmt = <<< 'SQL'
+        SELECT * FROM
+          (SELECT COUNT(*) AS messageCount FROM message WHERE created_at > ? AND
+            (from_user = ? OR to_user = ?)
+          ) M,
+          (SELECT COUNT(*) AS connectionsCount FROM connection WHERE created_at > ? AND
+            (user_a = ? OR user_b = ?)
+          ) C
+      SQL;
+      $result = $this->execute_result_query(
+        $stmt,
+        "siisii",
+        $dateTimePerRelation->messagesAfter,
+        $user_id,
+        $user_id,
+        $dateTimePerRelation->connectionsAfter,
+        $user_id,
+        $user_id,
+      );
+      $counts = $result[0];
+      return new \CountPerRelation($counts['messageCount'], $counts['connectionsCount']);
+    }
     function abandon_user(int $user_id, string $handle): void
     {
       $this->execute_typed_query(
@@ -50,10 +82,9 @@ use middleware\rules\UserNotFoundException;
         ON message.to_user = user_receipient.id
         WHERE user_sender.id = ? OR user_receipient.id = ?
       SQL;
-      $preped_stmt = $this->prepare($stmt);
-      $preped_stmt->bind_param("ii", $user_id, $user_id);
-      $messages = $this->getResultArray($preped_stmt);
-      return $messages;
+      return $this->execute_result_query(
+        $stmt, "ii", $user_id, $user_id
+      );
     }
 
     function delete_user_messages(int $user_id): void
@@ -100,67 +131,36 @@ use middleware\rules\UserNotFoundException;
 
     function get_user_id_and_profile(string $handle, string $token): array
     {
-      $stmt = $this->prepare("SELECT id FROM user WHERE handle=? AND token=?");
-      $stmt->bind_param("ss", $handle, $token);
-      $rows = DBRepository::getResultArray($stmt);
-      if (count($rows) !== 1) {
+      $result = $this->execute_result_query(
+        "SELECT id FROM user WHERE handle = ? AND token = ?",
+        "ss",
+        $handle,
+        $token,
+      );
+      if (count($result) !== 1) {
         throw new UserNotFoundException();
       }
-      return [$rows[0]['id'], array("handle" => $handle)];
-    }
-    function get_user_chats(int $user_id): array
-    {
-      $stmt = <<<'SQL'
-      WITH friend
-        AS (
-          SELECT user_a as id FROM connection WHERE user_b = ?
-          UNION
-          SELECT user_b as id FROM connection WHERE user_a = ?
-        )
-      SELECT user.handle FROM user
-      INNER JOIN friend
-      ON friend.id = user.id
-      SQL;
-
-      $prepared_stmt = $this->prepare($stmt);
-      $prepared_stmt->bind_param("ii", $user_id, $user_id);
-      $row_per_chat = DBRepository::getResultArray($prepared_stmt);
-      $chats = array_map(
-        function ($row) {
-          return array("user" => array("handle" => $row['handle']));
-        }
-        ,
-        $row_per_chat
-      );
-      return $chats;
+      return [$result[0]['id'], array('handle' => $handle)];
     }
     function get_profiles_for_connected_users(int $user_id): array
     {
       $stmt = <<<'SQL'
       WITH friend
         AS (
-          SELECT user_a as id FROM connection WHERE user_b = ?
+          SELECT user_a AS id,
+            created_at AS connected_on
+            FROM connection WHERE user_b = ?
           UNION
-          SELECT user_b as id FROM connection WHERE user_a = ?
+          SELECT user_b AS id,
+            created_at AS connected_on
+            FROM connection WHERE user_a = ?
         )
-      SELECT user.handle FROM user
+      SELECT user.handle, friend.connected_on FROM user
       INNER JOIN friend
       ON friend.id = user.id
       SQL;
       $db_result = $this->execute_result_query($stmt, "ii", $user_id, $user_id);
       return $db_result;
-    }
-    function delete_user_account_chat(int $user_id, string $chat_handle): void
-    {
-      $stmt = <<<'SQL'
-      DELETE FROM connection
-      WHERE connection.user_a = ? AND connection.user_b IN (SELECT id FROM user WHERE handle = ?)
-      OR
-      connection.user_b = ? AND connection.user_a IN (SELECT id FROM user WHERE handle = ?)
-      SQL;
-      $prepared_stmt = $this->prepare($stmt);
-      $prepared_stmt->bind_param("isis", $user_id, $chat_handle, $user_id, $chat_handle);
-      $prepared_stmt->execute();
     }
     function add_user_message(int $user_id, array $message): array
     {
@@ -186,7 +186,7 @@ use middleware\rules\UserNotFoundException;
         return array();
       }
 
-      $set_msg_created_at_variable = "SELECT @created_at:=(SELECT CURRENT_TIMESTAMP())";
+      $set_msg_created_at_variable = "SELECT @created_at:=(SELECT CURRENT_TIMESTAMP(6))";
       $this->query($set_msg_created_at_variable);
 
       $add_new_message_statement = "INSERT INTO message( text, from_user, to_user, created_at) ";

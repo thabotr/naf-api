@@ -2,6 +2,7 @@
 require_once(realpath(dirname(__FILE__) . '/src/repository.php'));
 require_once(realpath(dirname(__FILE__) . '/src/router.php'));
 require_once(realpath(dirname(__FILE__) . '/src/validations.php'));
+require_once(realpath(dirname(__FILE__) . '/src/types/notifications.php'));
 
 use middleware\rules\NoConnectionRequestTimestampException;
 use middleware\rules\UserNotFoundException;
@@ -78,82 +79,68 @@ try
   exit;
 }
 
-class EventType
-{
-  static $IDLE = 0;
-  static $NEW_MESSAGE = 1;
-}
-
-function user_has_new_msg(
-  DateTime $since,
-  int $user_id,
-  string $handle,
-  DBRepository $db_repo
-)
-{
-  $messages = $db_repo->get_user_messages($user_id);
-  $received_messages = count(
-    array_filter(
-      $messages,
-      function ($msg) use ($since, $handle) {
-        $msg_timestamp = new DateTime($msg['timestamp']);
-        $is_new_message = $msg_timestamp > $since;
-        $msg_is_to_user = $msg['toHandle'] === $handle;
-        return $is_new_message && $msg_is_to_user;
-      }
-    )
-  );
-  return $received_messages > 0;
-}
-
-function validate_instructions(array $instructions)
-{
-  $validation_result = Validator::validate_notification_instructions($instructions);
-  if ($validation_result !== '') {
-    header('HTTP/1.0 400 Bad Request');
-    echo $validation_result;
-    exit;
-  }
-}
-
-Router::get("/notifications", function () use ($user_id, $handle, $db_repo) {
-  $selectors = getallheaders();
-  validate_instructions($selectors);
-  $msg_since = new DateTime($selectors['messagessince'], new DateTimeZone('UTC'));
-  header('HTTP/1.0 200 OK');
-  if (user_has_new_msg($msg_since, $user_id, $handle, $db_repo)) {
-    echo EventType::$NEW_MESSAGE;
-    exit;
-  }
-  echo EventType::$IDLE;
-  exit;
-});
-
-function padded_event(int $event): string
-{
-  return $event . str_repeat(' ', 4093) . "\r\n";
-}
-
-Router::post("/notifications", function ($request_body) use ($user_id, $handle, $db_repo) {
-  set_time_limit(0);
-  ob_implicit_flush(true);
-  ob_end_flush();
-  $iter = 0;
-  $instructions = json_decode($request_body, true);
-  validate_instructions($instructions);
-
-  while ($iter < 10) {
-    $msg_since = new DateTime($instructions['messagesSince'], new DateTimeZone('UTC'));
-    if (user_has_new_msg($msg_since, $user_id, $handle, $db_repo)) {
-      echo padded_event(EventType::$NEW_MESSAGE);
+class TimeFormatException extends Exception {
+  function __construct(string $timeFieldName = null)
+  {
+    if( $timeFieldName == null)
+    {
+      parent::__construct("invalid datetime format. " .
+        "Expected a time string of format '%Y-%m-%d %H:%i:%s:v'"
+      );
     } else {
-      echo padded_event(EventType::$IDLE);
+      parent::__construct(
+        "field '". $timeFieldName .
+        "' should be a time string of format '%Y-%m-%d %H:%i:%s:v'"
+      );
     }
-    sleep(1);
-    $iter += 1;
   }
-  exit;
-});
+}
+
+function validate_timestamp(string $timestamp, $name = null): void
+{
+  try
+  {
+    new DateTime($timestamp);
+  } catch( Exception $_) {
+    throw new TimeFormatException($name);
+  }
+}
+
+$notificationsLabels = ['messagesAfter', 'connectionsAfter'];
+function validate_notifications_selectors(array $selectors): void
+{
+  global $notificationsLabels;
+  foreach( $notificationsLabels as $label) {
+    if(isset($selectors[$label])) {
+      try {
+        validate_timestamp($selectors[$label], $label);
+      } catch (TimeFormatException $e) {
+        Router::sendText($e->getMessage(), 400);
+      }
+    }  
+  }
+}
+
+Router::get(
+  "/notifications",
+  function ($params) use ($user_id, $db_repo) {
+    $bitString = "00";
+    validate_notifications_selectors($params);
+    $now = $db_repo->datetime_now();
+    $msgsAfterTimestamp = isset($params['messagesAfter']) 
+      ? $params['messagesAfter'] : $now;
+    $connsAfterTimestamp = isset($params['connectionsAfter'])
+      ? $params['connectionsAfter'] : $now;
+
+    $counts = $db_repo->count_records_created_after(
+      $user_id,
+      new \DateTimePerRelation($msgsAfterTimestamp, $connsAfterTimestamp)
+    );
+    $bitString[0] = $counts->messageCount > 0 ? '1' : '0';
+    $bitString[1] = $counts->connectionsCount > 0 ? '1' : '0';
+    Router::sendText($bitString);
+  }
+);
 
 Router::delete("/connections", function (array $params) use ($user_id, $db_repo) {
   if (!isset($params["toHandle"])) {
@@ -195,12 +182,12 @@ Router::get("/messages", function (array $filters) use ($handle, $user_id, $db_r
 
   if (isset($filters['after'])) {
     try {
-      $after = new DateTime($filters['after'], new DateTimeZone("UTC"));
+      $after = new DateTime($filters['after']);
       $messages = array_values(
         array_filter(
           $messages,
           function ($msg) use ($after) {
-            $msg_time = new DateTime($msg['timestamp'], new DateTimeZone("UTC"));
+            $msg_time = new DateTime($msg['timestamp']);
             $is_after = $msg_time > $after;
             return $is_after;
           }
@@ -208,7 +195,7 @@ Router::get("/messages", function (array $filters) use ($handle, $user_id, $db_r
       );
     } catch (Exception $_) {
       header('HTTP/1.0 400 Bad Request');
-      echo "parameter 'after' should be a UTC time string of format '%Y-%m-%d %H:%M:%S'";
+      echo "parameter 'after' should be a time string of format '%Y-%m-%d %H:%M:%S'";
       exit;
     }
   }
@@ -274,8 +261,7 @@ Router::post("/messages", function (string $body) {
     header('HTTP/1.0 400 Bad Request');
     echo $e->getMessage();
     exit;
-  } catch (Throwable $e) {
-    var_dump($e);
+  } catch (Throwable $_) {
     header('HTTP/1.0 500 Internal Server Error');
     exit;
   }

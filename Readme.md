@@ -264,3 +264,34 @@ Returns:
 Returns:
 
     Status: 404 Not Found
+
+## ❌❌ 🔐 GET /notifications?messagesAfter=&lt;timestamp>&connectionsAfter=&lt;timestamp>
+returns a bit string where the first bit represents the presence of user messages dated after &lt;messagesAfter> and the second bit represents the presence of user connections dated after &lt;connectionsAfter>
+
+**&lt;messagesAfter> is a &lt;timestamp> and &lt;connectionsAfter> is a &lt;timestamp>**
+
+Returns:
+
+    Status: 200 OK
+
+Besponse body examples:
+
+    00
+
+    10
+
+    01
+
+    11
+
+**&lt;messagesAfter> is not &lt;timestamp>**
+
+Returns:
+
+    Status: 400 Bad Request
+
+**&lt;connectionsAfter> is not &lt;timestamp>**
+
+Returns:
+
+    Status: 400 Bad Request

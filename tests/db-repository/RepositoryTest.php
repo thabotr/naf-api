@@ -1,19 +1,11 @@
-<?php require_once(realpath(dirname(__FILE__) . '../../../../src/repository.php'));
-use PHPUnit\Framework\TestCase;
-use repository\database\DBRepository;
+<?php
+namespace repository\database;
 
-class DBRepositoryTest extends TestCase
+require_once(realpath(dirname(__FILE__) . '/../../src/repository.php'));
+require_once(realpath(dirname(__FILE__) . '/Common.php'));
+
+class RepositoryTest extends Common
 {
-  private function userHasMessages(int $user_id): bool
-  {
-    $result = $this->db_repo->execute_result_query(
-      "SELECT COUNT(*) AS count FROM message WHERE from_user = ? OR to_user = ?",
-      "ii", 
-      $user_id,
-      $user_id
-    );
-    return $result[0]['count'] > 0;
-  }
   public function testDeleteUserMessagesRemovesAllMessagesToAndFromUser():void
   {
     $this->_addUserMessages();
@@ -39,38 +31,23 @@ class DBRepositoryTest extends TestCase
   }
   public function testGetUserIdAndProfileReturnsValidResult(): void
   {
-    $test_handle = "w/testHandle";
-    $test_token = "testToken";
-    [$user_id, $profile] = $this->db_repo->get_user_id_and_profile($test_handle, $test_token);
-    $expected_id = 1;
-    $expected_profile = array("handle" => "w/testHandle");
-    $this->assertEquals($expected_id, $user_id);
-    $this->assertArraySubset($expected_profile, $profile);
-    $this->assertArraySubset($profile, $expected_profile);
+    $testHandle = "w/testHandle";
+    $testToken = "testToken";
+    $expectedIdAndProfile = [1, array("handle" => "w/testHandle")];
+    $idAndProfile = $this->db_repo->get_user_id_and_profile($testHandle, $testToken);
+    $this->assertEquals($expectedIdAndProfile, $idAndProfile);
   }
   
   public function testGetProfilesForConnectedUsersReturnsCorrectResult(): void
   {
     $this->_setUpConnections();
     $profiles = $this->db_repo->get_profiles_for_connected_users($this->user_id);
-    $expected_profiles = [
-      array("handle" => "w/testHandle2"),
-      array("handle" => "w/testHandle3")
-    ];
-    $this->assertArraySubset($expected_profiles, $profiles);
-    $this->assertArraySubset($profiles, $expected_profiles);
-  }
-
-  public function testDeleteUserChatDeletesConnectionBetweenUserAndChat(): void
-  {
-    $this->_setUpConnections();
-    $chat_handle = "w/testHandle2";
-    $this->db_repo->delete_user_account_chat($this->user_id, $chat_handle);
-    $user_chats = $this->db_repo->get_user_chats($this->user_id);
-    $deleted_chat = array("handle" => $chat_handle);
-    foreach ($user_chats as $chat) {
-      $this->assertNotEquals($deleted_chat, $chat);
-    }
+    $toHandle = function ($user) {
+      return $user['handle'];
+    };
+    $expectedHandles = ["w/testHandle2", "w/testHandle3"];
+    $handles = array_map($toHandle, $profiles);
+    $this->assertEquals($expectedHandles, $handles);
   }
 
   public function testAddUserMessageReturnsTimestampOnSuccess(): void
@@ -84,7 +61,7 @@ class DBRepositoryTest extends TestCase
     );
     $message_metadata = $this->db_repo->add_user_message($user_id, $message);
     $timestamp = $message_metadata['timestamp'];
-    $timestamp_format = "%d-%d-%d %d:%d:%d";
+    $timestamp_format = "%d-%d-%d %d:%d:%d.%d";
     $this->assertStringMatchesFormat($timestamp_format, $timestamp);
   }
 
@@ -292,16 +269,9 @@ class DBRepositoryTest extends TestCase
     $this->assertTrue($no_request_to_14);
   }
 
-  public $db_repo;
-
-  protected function setUp()
+  public function setUp(): void
   {
-    $this->db_repo = new DBRepository(
-      "tartarus.aserv.co.za:3306",
-      "thabolao_naf_admin",
-      "naf_admin_pw",
-      "thabolao_naf_db"
-    );
+    parent::setUp();
     $stmt = <<< 'SQL'
       INSERT IGNORE user(id, handle, token) 
       VALUES 
@@ -313,7 +283,7 @@ class DBRepositoryTest extends TestCase
     SQL;
     $this->db_repo->query($stmt);
   }
-  protected function tearDown()
+  protected function tearDown(): void
   {
     $this->db_repo->query("DELETE FROM user WHERE id IN (1,2,3,4,5)");
     $this->db_repo->close();
@@ -386,7 +356,16 @@ class DBRepositoryTest extends TestCase
       "DELETE FROM connection WHERE user_a = $user_1_id AND user_b = $user_2_id"
     );
   }
-
+  private function userHasMessages(int $user_id): bool
+  {
+    $result = $this->db_repo->execute_result_query(
+      "SELECT COUNT(*) AS count FROM message WHERE from_user = ? OR to_user = ?",
+      "ii", 
+      $user_id,
+      $user_id
+    );
+    return $result[0]['count'] > 0;
+  }
   private function _clearRequestsBetweenUsers(int $user_a_id, int $user_b_id): void
   {
     $this->db_repo->query(

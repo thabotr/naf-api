@@ -39,11 +39,31 @@ class Router
       exit;
     }
   }
+
+  static function setStatusHeader(int $status = null): void
+  {
+    switch($status) {
+      case 400:
+        header("HTTP/1.0 400 Bad Request");
+        break;
+      default:
+        header("HTTP/1.0 200 OK");
+    }
+  }
   
-  static function sendJSON(array $data) {
+  static function sendJSON(array $data, int $status = null) {
+    Router::setStatusHeader($status);
     header("Content-Type: application/json");
     $resp_str = json_encode($data);
     header("Content-Length: " . strlen($resp_str));
+    echo $resp_str;
+    exit;
+  }
+  static function sendText(string $text, int $status = null) {
+    Router::setStatusHeader($status);
+    header("Content-Type: text/plain");
+    header("Content-Length: " . strlen($text));
+    echo $text;
     exit;
   }
 }

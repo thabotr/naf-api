@@ -75,7 +75,7 @@ class CommonTest extends TestCase
       // 'base_uri' => "http://www.thaborlabs.com/naf/api/",
       'base_uri' => "http://localhost:8000/naf/api/",
       'allow_redirects' => true,
-      'timeout' => 50.0,
+      'timeout' => 2.0,
       'stack' => $stack
     ]);
 

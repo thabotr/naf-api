@@ -8,7 +8,7 @@ class NotificationsTest extends CommonTest
 {
   private function GETNotifications(array $params) {
     return $this->client->get(
-      "/notifications",
+      "notifications",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'query' => $params,

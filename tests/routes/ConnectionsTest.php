@@ -13,7 +13,7 @@ class ConnectionsTest extends CommonTest
 
     $this->setConnectionRequests();
     $response = $this->client->get(
-      "/connections/pending",
+      "connections/pending",
       ['auth' => [$this->me->handle, $this->me->token, 'basic']]
     );
 
@@ -29,7 +29,7 @@ class ConnectionsTest extends CommonTest
   {
     $this->clearUserConnectionRequests();
     $response = $this->client->post(
-      "/connections",
+      "connections",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'body' => $this->others[0]->handle,
@@ -48,7 +48,7 @@ class ConnectionsTest extends CommonTest
   {
     $badHandle1 = "w/";
     $response = $this->client->post(
-      "/connections",
+      "connections",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'body' => $badHandle1,
@@ -58,7 +58,7 @@ class ConnectionsTest extends CommonTest
     $this->assertEquals(400, $response->getStatusCode());
     $badHandle2 = "w/!testHandle2";
     $response2 = $this->client->post(
-      "/connections",
+      "connections",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'body' => $badHandle2,
@@ -72,7 +72,7 @@ class ConnectionsTest extends CommonTest
   {
     $unregisteredHandle = "w/imNotRegistered";
     $response = $this->client->post(
-      "/connections",
+      "connections",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'body' => $unregisteredHandle,
@@ -86,7 +86,7 @@ class ConnectionsTest extends CommonTest
   {
     $badHandle1 = "w/";
     $response = $this->client->delete(
-      "/connections",
+      "connections",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'query' => ['toHandle' => $badHandle1],
@@ -96,7 +96,7 @@ class ConnectionsTest extends CommonTest
     $this->assertEquals(400, $response->getStatusCode());
     $badHandle2 = "w/!testHandle2";
     $response2 = $this->client->delete(
-      "/connections",
+      "connections",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'query' => ['toHandle' => $badHandle2],
@@ -146,7 +146,7 @@ class ConnectionsTest extends CommonTest
 
   private function requestDeleteConnectionTo(string $userHandle){
     return $this->client->delete(
-      "/connections",
+      "connections",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'query' => ['toHandle' => $userHandle],

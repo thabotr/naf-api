@@ -10,7 +10,7 @@ class MessagesTest extends CommonTest
   public function testGetMessagesReturnsAllMessagesForUser(): void
   {
     $response = $this->client->get(
-      '/messages',
+      'messages',
       ['auth' => [$this->me->handle, $this->me->token, 'basic']]
     );
     $this->assertEquals(200, $response->getStatusCode());
@@ -28,7 +28,7 @@ class MessagesTest extends CommonTest
     $lastSentMessage = $this->sentMessages[count($this->sentMessages) - 1];
     $messagesAfter = $lastSentMessage['timestamp'];
     $response = $this->client->get(
-      "/messages",
+      "messages",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'query' => ['after' => $messagesAfter],
@@ -43,7 +43,7 @@ class MessagesTest extends CommonTest
   public function testGetMessagesToMeReturnsAllMessagesSentToUser(): void
   {
     $response = $this->client->get(
-      "/messages",
+      "messages",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'query' => ['toMe' => 1],
@@ -59,7 +59,7 @@ class MessagesTest extends CommonTest
   {
     $invalidTimestamp = "2020-=1-11";
     $response = $this->client->get(
-      "/messages",
+      "messages",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'query' => ['after' => $invalidTimestamp],
@@ -73,7 +73,7 @@ class MessagesTest extends CommonTest
   {
     $messageWithoutText = array("toHandle" => $this->others[0]->handle);
     $response = $this->client->post(
-      "/messages",
+      "messages",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'http_errors' => false,
@@ -86,7 +86,7 @@ class MessagesTest extends CommonTest
   {
     $messageWithoutReceipient = array("text" => "hello");
     $response = $this->client->post(
-      "/messages",
+      "messages",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'http_errors' => false,
@@ -96,7 +96,7 @@ class MessagesTest extends CommonTest
     $this->assertEquals(400, $response->getStatusCode());
     $messageWBadHandle = array("text" => "hello", "toHandle" => "w/");
     $response2 = $this->client->post(
-      "/messages",
+      "messages",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'http_errors' => false,
@@ -114,7 +114,7 @@ class MessagesTest extends CommonTest
       "toHandle" => $user->handle,
     );
     $response = $this->client->post(
-      "/messages",
+      "messages",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'http_errors' => false,
@@ -128,7 +128,7 @@ class MessagesTest extends CommonTest
     $user = $this->others[0];
     $message = array("toHandle" => $user->handle, "text" => "a unique message");
     $response = $this->client->post(
-      "/messages",
+      "messages",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'json' => $message,

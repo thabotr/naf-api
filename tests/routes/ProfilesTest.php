@@ -17,7 +17,7 @@ class ProfilesTest extends CommonTest
 
     $this->setUserConnections();
     $response = $this->client->get(
-      '/profiles/connected-users',
+      'profiles/connected-users',
       ['auth' => [$this->me->handle, $this->me->token, 'basic']]
     );
     $this->assertEquals(200, $response->getStatusCode());
@@ -118,5 +118,5 @@ class ProfilesTest extends CommonTest
     $this->assertEquals($user->handle, $profile["handle"]);
   }
 
-  protected $myProfileURL = "/profiles/my-profile";
+  protected $myProfileURL = "profiles/my-profile";
 }

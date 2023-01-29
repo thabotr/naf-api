@@ -17,7 +17,7 @@ class CommonTest extends TestCase
 
   public function testGetPingReturnsPong(): void
   {
-    $response = $this->client->get("/ping");
+    $response = $this->client->get("ping");
     $this->assertEquals(200, $response->getStatusCode());
     $this->assertTrue($response->getBody() == "pong");
   }
@@ -72,8 +72,11 @@ class CommonTest extends TestCase
     $stack->push($this->logRequest());
 
     $this->client = new Client([
-      'base_uri' => "http://localhost:8000/naf/api",
-      'timeout' => 2.0
+      // 'base_uri' => "http://www.thaborlabs.com/naf/api/",
+      'base_uri' => "http://localhost:8000/naf/api/",
+      'allow_redirects' => true,
+      'timeout' => 50.0,
+      'stack' => $stack
     ]);
 
     $this->me = $this->setUser(new Profile(-1, 'w/testHandle', 'testToken'));

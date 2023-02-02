@@ -1,7 +1,11 @@
 <?php
 namespace repository\database;
 
-require_once(realpath(dirname(__FILE__) . '/../../src/repository.php'));
+require_once(realpath(__DIR__ . '/../../vendor/autoload.php'));
+require_once(realpath(__DIR__ . '/../../src/common.php'));
+require_once(realpath(__DIR__ . '/../../src/repository.php'));
+
+use common\Config;
 use PHPUnit\Framework\TestCase;
 use repository\database\DBRepository;
 
@@ -10,11 +14,13 @@ class Common extends TestCase
   public $db_repo;
   public function setUp(): void
   {
+
+    $config = new Config();
     $this->db_repo = new DBRepository(
-      "tartarus.aserv.co.za:3306",
-      "thabolao_naf_admin",
-      "naf_admin_pw",
-      "thabolao_naf_db"
+      $config->dbConfig->host,
+      $config->dbConfig->username,
+      $config->dbConfig->password,
+      $config->dbConfig->database,
     );
   }
 }

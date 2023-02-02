@@ -187,12 +187,10 @@ class MessagesTest extends CommonTest
     for($i = 0; $i < count($this->sentMessages); ++$i) {
       $result = $this->repo->add_user_message( $this->me->id, $this->sentMessages[$i]);
       $this->sentMessages[$i]["timestamp"] = $result["timestamp"];
-      sleep(1);
     }
     for($i = 0; $i < count($this->receivedMessages); ++$i) {
       $result = $this->repo->add_user_message($user->id, $this->receivedMessages[$i]);
       $this->receivedMessages[$i]["timestamp"] = $result["timestamp"];
-      sleep(1);
     }
   }
 }

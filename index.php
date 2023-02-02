@@ -1,8 +1,9 @@
 <?php
+require_once(realpath(dirname(__FILE__) . '/src/common.php'));
 require_once(realpath(dirname(__FILE__) . '/src/repository.php'));
 require_once(realpath(dirname(__FILE__) . '/src/router.php'));
-require_once(realpath(dirname(__FILE__) . '/src/validations.php'));
 require_once(realpath(dirname(__FILE__) . '/src/types/notifications.php'));
+require_once(realpath(dirname(__FILE__) . '/src/validations.php'));
 
 use middleware\rules\NoConnectionRequestTimestampException;
 use middleware\rules\UserNotFoundException;
@@ -15,12 +16,7 @@ Router::get("/ping", function () {
   exit;
 });
 
-$db_repo = new DBRepository(
-  "tartarus.aserv.co.za:3306",
-  "thabolao_naf_admin",
-  "naf_admin_pw",
-  "thabolao_naf_db"
-);
+$db_repo = new DBRepository();
 if (!isset($_SERVER['PHP_AUTH_USER'])) {
   header('WWW-Authenticate: BASIC realm="user profile"');
   header('HTTP/1.0 401 Unauthorized');

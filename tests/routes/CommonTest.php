@@ -3,7 +3,6 @@ namespace resource;
 
 require_once(realpath(dirname(__FILE__) . '/../../vendor/autoload.php'));
 require_once(realpath(dirname(__FILE__) . '/../../src/repository.php'));
-
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Handler\CurlHandler;

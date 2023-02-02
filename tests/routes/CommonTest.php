@@ -1,11 +1,10 @@
 <?php
 namespace resource;
+use common\Config;
 
 require_once(realpath(dirname(__FILE__) . '/../../vendor/autoload.php'));
 require_once(realpath(dirname(__FILE__) . '/../../src/repository.php'));
 use GuzzleHttp\Client;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Handler\CurlHandler;
 use PHPUnit\Framework\TestCase;
 use repository\database\DBRepository;
 use Psr\Http\Message\RequestInterface;
@@ -41,41 +40,15 @@ class CommonTest extends TestCase
   public $me;
   public $others;
 
-  function logRequest()
-  {
-      return function (callable $handler) {
-          return function (
-              RequestInterface $request,
-              array $options
-          ) use ($handler) {
-            var_dump($request);
-              $promise = $handler($request, $options);
-              return $promise->then(
-                  function (ResponseInterface $response) {
-                      return $response->withHeader("hello", "hi");
-                  }
-              );
-          };
-      };
-  }
   public function setUp(): void
   {
-    $this->repo = new DBRepository(
-      "tartarus.aserv.co.za:3306",
-      "thabolao_naf_admin",
-      "naf_admin_pw",
-      "thabolao_naf_db"
-    );
-    $stack = new HandlerStack();
-    $stack->setHandler(new CurlHandler());
-    $stack->push($this->logRequest());
+    $this->repo = new DBRepository();
+    $config = new Config();
 
     $this->client = new Client([
-      // 'base_uri' => "http://www.thaborlabs.com/naf/api/",
-      'base_uri' => "http://localhost:8000/naf/api/",
+      'base_uri' => $config->webServerURL. "/naf/api/",
       'allow_redirects' => true,
       'timeout' => 2.0,
-      'stack' => $stack
     ]);
 
     $this->me = $this->setUser(new Profile(-1, 'w/testHandle', 'testToken'));

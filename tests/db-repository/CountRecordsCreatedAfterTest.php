@@ -1,12 +1,12 @@
 <?php
 namespace repository\database;
-require_once(realpath(dirname(__FILE__) . '/Common.php'));
+require_once(realpath(dirname(__FILE__) . '/CommonTest.php'));
 require_once(realpath(dirname(__FILE__) . '/../../src/repository.php'));
 require_once(realpath(dirname(__FILE__) . '/../../src/types/profile.php'));
 require_once(realpath(dirname(__FILE__) . '/../../src/types/notifications.php'));
 
 
-class CountRecordsCreatedAfterTest extends Common
+class CountRecordsCreatedAfterTest extends CommonTest
 {
   public function testCheckRecordsAfterReturnsCorrectResult(): void
   {

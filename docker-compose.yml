@@ -1,20 +1,25 @@
 version: '3'
 services:
-    web:
-        image: nginx:1.23.3-perl
-        ports:
-            - 80:80
-        volumes:
-            - ./nginx.conf:/etc/nginx/conf.d/nginx.conf
-            - ./:/app
-    php:
+    # webserver:
+    #     image: nginx:1.23.3-perl
+    #     ports:
+    #         - 80:80
+    #     volumes:
+    #         - ./nginx.conf:/etc/nginx/conf.d/nginx.conf
+    #         - ./:/app
+    webserver:
         build:
             context: .
             dockerfile: PHP.Dockerfile
         volumes:
-            - ./:/app
+            - ./:/var/www/html/
+            - type: bind
+              source: ./apache2.conf
+              target: /etc/apache2/apache2.conf
+        ports:
+            - 80:80
     
-    db:
+    mariadb:
         image: mariadb:10.3.37
         restart: always
         environment:
@@ -26,9 +31,3 @@ services:
             - 3306:3306
         volumes:
           - ./db-data:/var/lib/mysql
-
-    # adminer:
-    #     image: adminer
-    #     restart: always
-    #     ports:
-    #     - 8080:8080

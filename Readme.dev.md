@@ -13,7 +13,6 @@ TODO complete endpoint tests
 - any of the other endpoints in the [Readme](./Readme.md) will then be run against the base path `http://[::1]:80/naf/api/`
 
 ## Running tests
+The local project root directory is mounted inside the php and webserver docker images so the tests can be run as follows:
 
-From `<rootDir>/tests/` directory run
-
-    ..\vendor\bin\phpunit --testdox ./<path/tests/directory>/
+    docker exec -it naf-api-php-1 vendor/bin/phpunit --testdox ./tests/<path/to/test/file/or/dir>

@@ -20,6 +20,7 @@ class DBConfig {
 
 class Config {
   public $dbConfig;
+  public $webServerURL;
   public function __construct() {
     $dotenv = Dotenv::createImmutable(realpath(__DIR__ . '/../'));
     $dotenv->load();
@@ -31,6 +32,7 @@ class Config {
         $_ENV["PROD_DB_PASSWORD"],
         $_ENV["PROD_DB_SCHEMA"],
       );
+      $this->webServerURL = $_ENV["PROD_WEBSERVER"];
     } else {
       $this->dbConfig = new DBConfig(
         $_ENV["DEV_DB_HOST"],
@@ -38,6 +40,7 @@ class Config {
         $_ENV["DEV_DB_PASSWORD"],
         $_ENV["DEV_DB_SCHEMA"],
       );
+      $this->webServerURL = $_ENV["DEV_WEBSERVER"];
     }
   }
 }

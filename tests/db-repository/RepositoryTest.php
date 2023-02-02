@@ -2,9 +2,9 @@
 namespace repository\database;
 
 require_once(realpath(dirname(__FILE__) . '/../../src/repository.php'));
-require_once(realpath(dirname(__FILE__) . '/Common.php'));
+require_once(realpath(dirname(__FILE__) . '/CommonTest.php'));
 
-class RepositoryTest extends Common
+class RepositoryTest extends CommonTest
 {
   public function testDeleteUserMessagesRemovesAllMessagesToAndFromUser():void
   {

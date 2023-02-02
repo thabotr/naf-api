@@ -1,3 +1,4 @@
 *.phar
 *sftp.json
 vendor/
+*.env

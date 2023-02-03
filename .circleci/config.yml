@@ -37,8 +37,9 @@ jobs:
       # - run: ./vendor/bin/codecept build
       # - run: ./vendor/bin/codecept run
 
+      # start docker images
+      - setup_remote_docker
       - run: docker-compose up -d
       - run: docker ps
-      # start docker images
       # run db-repository tests
       # run endpoint tests

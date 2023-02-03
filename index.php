@@ -140,16 +140,12 @@ Router::get(
 
 Router::delete("/connections", function (array $params) use ($user_id, $db_repo) {
   if (!isset($params["toHandle"])) {
-    header('HTTP/1.0 400 Bad Request');
-    echo "missing URL parameter 'toHandle'";
-    exit;
+    Router::sendText("missing URL parameter 'toHandle'", 400);
   }
   $disconnect_handle = $params["toHandle"];
   validate_handle($disconnect_handle);
   $db_repo->abandon_user($user_id, $disconnect_handle);
-  header('HTTP/1.0 200 OK');
-  echo "abandoned user $disconnect_handle";
-  exit;
+  Router::sendText("abandoned user $disconnect_handle", 200);
 });
 
 Router::delete("/profiles/my-profile", function () use ($user_id, $db_repo) {
@@ -161,16 +157,12 @@ Router::delete("/profiles/my-profile", function () use ($user_id, $db_repo) {
 
 Router::get("/profiles/connected-users", function () use ($user_id, $db_repo) {
   $profiles = $db_repo->get_profiles_for_connected_users($user_id);
-  echo json_encode($profiles);
-  header('HTTP/1.0 200 OK');
-  exit;
+  Router::sendJSON($profiles, 200);
 });
 
 Router::get("/connections/pending", function () use ($user_id, $db_repo) {
   $connection_requests = $db_repo->get_connection_requests($user_id);
-  echo json_encode($connection_requests);
-  header('HTTP/1.0 200 OK');
-  exit;
+  Router::sendJSON($connection_requests, 200);
 });
 
 Router::get("/messages", function (array $filters) use ($handle, $user_id, $db_repo) {

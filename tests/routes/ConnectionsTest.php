@@ -120,7 +120,10 @@ class ConnectionsTest extends CommonTest
       },
     ));
     $profiles = $this->repo->get_profiles_for_connected_users($this->me->id);
-    $handlesForConnectedUsers = array_map($this->toHandle, $profiles);
+    $toHandle = function ($profile) {
+      return $profile['handle'];
+    };
+    $handlesForConnectedUsers = array_map($toHandle, $profiles);
     $this->assertEquals($handlesXceptDeleted2, $handlesForConnectedUsers);
     $this->clearUserConnections();
   }
@@ -138,8 +141,11 @@ class ConnectionsTest extends CommonTest
         return $handle != $requestedHandle;
       },
     ));
+    $toHandle = function ($request) {
+      return $request['handle'];
+    };
     $requestsToConnect = $this->repo->get_connection_requests($this->me->id);
-    $currentRequestedHandles = array_map($this->toHandle, $requestsToConnect);
+    $currentRequestedHandles = array_map($toHandle, $requestsToConnect);
     $this->assertEquals($handlesXceptDeleted, $currentRequestedHandles);
     $this->clearUserConnectionRequests();
   }

@@ -21,25 +21,33 @@ class NotificationsTest extends CommonTest
     $badTimestamp = '2011-03-37 17:10:12';
     $response = $this->GETNotifications(['messagesAfter' => $badTimestamp]);
     $this->assertEquals(400, $response->getStatusCode());
+    $this->assertEquals(
+      "parameter 'messagesAfter' should be of format '%Y-%m-%d %H:%i:%s:v'",
+      $this->responseToString($response),
+    );
   }
   public function testGetNotificationsReturnsBadRequestOnBadConnectionsAfter(): void
   {
     $badTimestamp = '2011-033-01';
     $response = $this->GETNotifications(['connectionsAfter' => $badTimestamp]);
     $this->assertEquals(400, $response->getStatusCode());
+    $this->assertEquals(
+      "parameter 'connectionsAfter' should be of format '%Y-%m-%d %H:%i:%s:v'",
+      $this->responseToString($response),
+    );
   }
   public function testGetNotificationsReturnsCorrectResultOnOnlyMessagesAfter(): void
   {
     $response = $this->GETNotifications(['messagesAfter' => $this->timeB4MsgSend]);
     $this->assertEquals(200, $response->getStatusCode());
-    $responseStr = $this->asString($response);
+    $responseStr = $this->responseToString($response);
     $newMessagesOnlyNotification = "10";
     $this->assertEquals($newMessagesOnlyNotification, $responseStr);
 
     $now = $this->repo->datetime_now();
     $secondResponse = $this->GETNotifications(['messagesAfter' => $now]);
     $this->assertEquals(200, $secondResponse->getStatusCode());
-    $secondResponseStr = $this->asString($secondResponse);
+    $secondResponseStr = $this->responseToString($secondResponse);
     $noNotifications = "00";
     $this->assertEquals($noNotifications, $secondResponseStr);
   }
@@ -49,14 +57,14 @@ class NotificationsTest extends CommonTest
       ['connectionsAfter' => $this->timeB4UserConnection]
     );
     $this->assertEquals(200, $response->getStatusCode());
-    $responseStr = $this->asString($response);
+    $responseStr = $this->responseToString($response);
     $newConnectionsOnly = "01"; 
     $this->assertEquals($newConnectionsOnly, $responseStr);
     
     $now = $this->repo->datetime_now();
     $secondResponse = $this->GETNotifications(['connectionsAfter' => $now]);
     $this->assertEquals(200, $secondResponse->getStatusCode());
-    $secondResponseStr = $this->asString($secondResponse);
+    $secondResponseStr = $this->responseToString($secondResponse);
     $noNotifications = "00";
     $this->assertEquals($noNotifications, $secondResponseStr);
   }
@@ -69,7 +77,7 @@ class NotificationsTest extends CommonTest
       ]
     );
     $this->assertEquals(200, $response->getStatusCode());
-    $responseStr = $this->asString($response);
+    $responseStr = $this->responseToString($response);
     $newMessagesNConnections = "11";
     $this->assertEquals($newMessagesNConnections, $responseStr);
     
@@ -78,15 +86,9 @@ class NotificationsTest extends CommonTest
       ['connectionsAfter' => $now, 'messagesAfter' => $now]
     );
     $this->assertEquals(200, $secondResponse->getStatusCode());
-    $secondResponseStr = $this->asString($secondResponse);
+    $secondResponseStr = $this->responseToString($secondResponse);
     $noNotifications = "00";
     $this->assertEquals($noNotifications, $secondResponseStr);
-  }
-
-  
-  private function asString($response): string
-  {
-    return (string) $response->getBody();
   }
   public $timeB4MsgSend;
   public $timeB4UserConnection;

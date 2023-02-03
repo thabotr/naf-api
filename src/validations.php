@@ -30,19 +30,15 @@ class Validator
     return $is_atleast_length_8;
   }
 
-  static function validate_messages_filters(array $filters): string
+  static function is_valid_datetime(string $datetime): bool
   {
-
-    if (!isset($filters['since'])) {
-      return '';
+    try
+    {
+      new DateTime($datetime);
+      return true;
+    }catch( Exception $_) {
+      return false;
     }
-
-    try {
-      new DateTime($filters['since']);
-    } catch (Exception $e) {
-      return "filter header 'since' should be a time of format '%Y-%m-%d %H:%M:%S'";
-    }
-    return '';
   }
 }
 ?>

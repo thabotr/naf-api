@@ -55,65 +55,34 @@ try {
   Router::sendText("", 401);
 }
 
-class TimeFormatException extends Exception
-{
-  function __construct(string $timeFieldName = null)
-  {
-    if ($timeFieldName == null) {
-      parent::__construct("invalid datetime format. " .
-        "Expected a time string of format '%Y-%m-%d %H:%i:%s:v'"
-      );
-    } else {
-      parent::__construct(
-        "field '" . $timeFieldName .
-        "' should be a time string of format '%Y-%m-%d %H:%i:%s:v'"
-      );
-    }
-  }
-}
-
-function validate_timestamp(string $timestamp, $name = null): void
-{
-  try {
-    new DateTime($timestamp);
-  } catch (Exception $_) {
-    throw new TimeFormatException($name);
-  }
-}
-
-$notificationsLabels = ['messagesAfter', 'connectionsAfter'];
-function validate_notifications_selectors(array $selectors): void
-{
-  global $notificationsLabels;
-  foreach ($notificationsLabels as $label) {
-    if (isset($selectors[$label])) {
-      try {
-        validate_timestamp($selectors[$label], $label);
-      } catch (TimeFormatException $e) {
-        Router::sendText($e->getMessage(), 400);
-      }
-    }
-  }
-}
-
 Router::get(
   "/notifications",
   function ($params) use ($user_id, $db_repo) {
     $bitString = "00";
-    validate_notifications_selectors($params);
     $now = $db_repo->datetime_now();
     $msgsAfterTimestamp = isset($params['messagesAfter'])
       ? $params['messagesAfter'] : $now;
+    if(!Validator::is_valid_datetime($msgsAfterTimestamp)) {
+      Router::sendText(
+        "parameter 'messagesAfter' should be of format '%Y-%m-%d %H:%i:%s:v'",
+        400,
+      );
+    }
     $connsAfterTimestamp = isset($params['connectionsAfter'])
-      ? $params['connectionsAfter'] : $now;
-
+    ? $params['connectionsAfter'] : $now;
+    if(!Validator::is_valid_datetime($connsAfterTimestamp)) {
+      Router::sendText(
+        "parameter 'connectionsAfter' should be of format '%Y-%m-%d %H:%i:%s:v'",
+        400,
+      );
+    }
     $counts = $db_repo->count_records_created_after(
       $user_id,
       new \DateTimePerRelation($msgsAfterTimestamp, $connsAfterTimestamp)
     );
     $bitString[0] = $counts->messageCount > 0 ? '1' : '0';
     $bitString[1] = $counts->connectionsCount > 0 ? '1' : '0';
-    Router::sendText($bitString);
+    Router::sendText($bitString, 200);
   }
 );
 

@@ -8,7 +8,6 @@ use middleware\rules\UserNotFoundException;
 
 class ProfilesTest extends CommonTest
 {
-
   public function testGetProfilesConnectedUsersReturnsProfilesForConnectedUsers(): void
   {
     $likeProfile = function ($user) {

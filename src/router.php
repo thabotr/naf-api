@@ -43,14 +43,23 @@ class Router
   static function setStatusHeader(int $status = null): void
   {
     switch($status) {
+      case 200:
+        header("HTTP/1.0 200 OK");
+        break;
+      case 201:
+        header("HTTP/1.0 201 Created");
+        break;
       case 400:
         header("HTTP/1.0 400 Bad Request");
         break;
       case 401:
         header('HTTP/1.0 401 Unauthorized');
         break;
+      case 409:
+        header('HTTP/1.0 409 Conflict');
+        break;
       default:
-        header("HTTP/1.0 200 OK");
+        header("HTTP/1.0 500 Internal Server Error");
     }
   }
   

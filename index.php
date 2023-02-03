@@ -12,7 +12,7 @@ use resource\Router;
 use middleware\rules\Validator;
 
 Router::get("/ping", function () {
-  Router::sendText("pong");
+  Router::sendText("pong", 200);
 });
 
 $db_repo = new DBRepository();
@@ -24,66 +24,48 @@ if (!isset($_SERVER['PHP_AUTH_USER'])) {
 $handle = $_SERVER['PHP_AUTH_USER'];
 $token = $_SERVER['PHP_AUTH_PW'];
 
-function validate_token(string $token): void
-{
-  $is_valid_token = Validator::is_valid_token($token);
-  if (!$is_valid_token) {
-    header('HTTP/1.0 400 Bad Request');
-    echo "token too weak. Must be atleast 8 characters";
-    exit;
+Router::post("/profiles/my-profile", function () use ($handle, $token, $db_repo) {
+  if (!Validator::is_valid_handle($handle)) {
+    Router::sendText(
+      "invalid handle '$handle'. Valid handle matches regexp 'w/[a-zA-Z0-9-_]+'",
+      400
+    );
   }
-}
-
-function validate_handle(string $handle): void
-{
-  $is_valid_handle = Validator::is_valid_handle($handle);
-  if (!$is_valid_handle) {
-    header('HTTP/1.0 400 Bad Request');
-    echo "invalid handle '$handle'. Valid handle matches regexp 'w/[a-zA-Z0-9-_]+'";
-    exit;
+  if (!Validator::is_valid_token($token)) {
+    Router::sendText("token too weak. Must be atleast 8 characters", 400);
   }
-}
 
-Router::post("/profiles/my-profile", function () use($handle, $token, $db_repo) {
-  validate_handle($handle);
-  validate_token($token);
   $new_user = array(
     "handle" => $handle,
     "token" => $token,
   );
   $user_added = $db_repo->add_user($new_user);
   if ($user_added) {
-    header("HTTP/1.0 201 Created");
-    echo "Notifications Are Free $handle!";
-    exit;
+    Router::sendText("Notifications Are Free $handle!", 201);
   }
 
-  header('HTTP/1.0 409 Conflict');
-  echo "We already know someone by the handle '$handle'";
-  exit;
+  Router::sendText("We already know someone by the handle '$handle'", 409);
 });
 
 $user_id;
 $profile;
-try
-{
+try {
   [$user_id, $profile] = $db_repo->get_user_id_and_profile($handle, $token);
-} catch( UserNotFoundException $_) {
-  header("HTTP/1.0 401 Unauthorized");
-  exit;
+} catch (UserNotFoundException $_) {
+  Router::sendText("", 401);
 }
 
-class TimeFormatException extends Exception {
+class TimeFormatException extends Exception
+{
   function __construct(string $timeFieldName = null)
   {
-    if( $timeFieldName == null)
-    {
+    if ($timeFieldName == null) {
       parent::__construct("invalid datetime format. " .
         "Expected a time string of format '%Y-%m-%d %H:%i:%s:v'"
       );
     } else {
       parent::__construct(
-        "field '". $timeFieldName .
+        "field '" . $timeFieldName .
         "' should be a time string of format '%Y-%m-%d %H:%i:%s:v'"
       );
     }
@@ -92,10 +74,9 @@ class TimeFormatException extends Exception {
 
 function validate_timestamp(string $timestamp, $name = null): void
 {
-  try
-  {
+  try {
     new DateTime($timestamp);
-  } catch( Exception $_) {
+  } catch (Exception $_) {
     throw new TimeFormatException($name);
   }
 }
@@ -104,14 +85,14 @@ $notificationsLabels = ['messagesAfter', 'connectionsAfter'];
 function validate_notifications_selectors(array $selectors): void
 {
   global $notificationsLabels;
-  foreach( $notificationsLabels as $label) {
-    if(isset($selectors[$label])) {
+  foreach ($notificationsLabels as $label) {
+    if (isset($selectors[$label])) {
       try {
         validate_timestamp($selectors[$label], $label);
       } catch (TimeFormatException $e) {
         Router::sendText($e->getMessage(), 400);
       }
-    }  
+    }
   }
 }
 
@@ -121,7 +102,7 @@ Router::get(
     $bitString = "00";
     validate_notifications_selectors($params);
     $now = $db_repo->datetime_now();
-    $msgsAfterTimestamp = isset($params['messagesAfter']) 
+    $msgsAfterTimestamp = isset($params['messagesAfter'])
       ? $params['messagesAfter'] : $now;
     $connsAfterTimestamp = isset($params['connectionsAfter'])
       ? $params['connectionsAfter'] : $now;

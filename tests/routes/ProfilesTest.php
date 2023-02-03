@@ -51,6 +51,10 @@ class ProfilesTest extends CommonTest
       ["auth" => [$user->handle, $user->token, 'basic']]
     );
     $this->assertEquals(201, $response->getStatusCode());
+    $this->assertEquals(
+      "Notifications Are Free $user->handle!",
+      $this->responseToString($response),
+    );
     $this->assertUserRegistered($user);
     $this->clearUser($user);
   }
@@ -59,19 +63,27 @@ class ProfilesTest extends CommonTest
   {
     $badHandle = "w/test=Handle6";
     $token = "testToken";
-    $response = $this->client->post(
+    $responseForBadHandle = $this->client->post(
       $this->myProfileURL,
       ['auth' => [$badHandle, $token, 'basic'], 'http_errors' => false]
     );
-    $this->assertEquals(400, $response->getStatusCode());
+    $this->assertEquals(400, $responseForBadHandle->getStatusCode());
+    $this->assertEquals(
+      "invalid handle '$badHandle'. Valid handle matches regexp 'w/[a-zA-Z0-9-_]+'",
+      $this->responseToString($responseForBadHandle),
+    );
     
     $handle = "w/testHandle6";
     $badToken = "shortPw";
-    $response2 = $this->client->post(
+    $responseForBadToken = $this->client->post(
       $this->myProfileURL,
       ['auth' => [$handle, $badToken, 'basic'], 'http_errors' => false]
     );
-    $this->assertEquals(400, $response2->getStatusCode());
+    $this->assertEquals(400, $responseForBadToken->getStatusCode());
+    $this->assertEquals(
+      "token too weak. Must be atleast 8 characters",
+      $this->responseToString($responseForBadToken)
+    );
   }
 
   public function testPostMyProfileReturnsConflictOnRegisteredUser(): void
@@ -84,6 +96,10 @@ class ProfilesTest extends CommonTest
       ]
     );
     $this->assertEquals(409, $response->getStatusCode());
+    $this->assertEquals(
+      "We already know someone by the handle '" . $this->me->handle . "'",
+      $this->responseToString($response),
+    );
   }
 
   public function testDeleteMyProfileRemovesAccount(): void

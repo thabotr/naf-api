@@ -7,8 +7,6 @@ require_once(realpath(dirname(__FILE__) . '/../../src/repository.php'));
 use GuzzleHttp\Client;
 use PHPUnit\Framework\TestCase;
 use repository\database\DBRepository;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 
 class CommonTest extends TestCase
 {
@@ -39,6 +37,11 @@ class CommonTest extends TestCase
   protected function responseToString($response): string
   {
     return (string)$response->getBody();
+  }
+
+  protected function responseToArray($response): array
+  {
+    return json_decode($response->getBody(), true);
   }
 
   public $client;

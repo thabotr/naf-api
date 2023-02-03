@@ -1,12 +1,5 @@
 version: '3'
 services:
-    # webserver:
-    #     image: nginx:1.23.3-perl
-    #     ports:
-    #         - 80:80
-    #     volumes:
-    #         - ./nginx.conf:/etc/nginx/conf.d/nginx.conf
-    #         - ./:/app
     webserver:
         build:
             context: .
@@ -17,8 +10,7 @@ services:
               source: ./apache2.conf
               target: /etc/apache2/apache2.conf
         ports:
-            - 80:80
-    
+            - "80:80"
     mariadb:
         image: mariadb:10.3.37
         restart: always
@@ -28,6 +20,6 @@ services:
             MARIADB_PASSWORD: naf_tester_pw
             MARIADB_ROOT_PASSWORD: naf_tester_root_pw
         ports:
-            - 3306:3306
+            - "3306:3306"
         volumes:
           - ./db-data:/var/lib/mysql

@@ -119,45 +119,35 @@ Router::get("/connections/pending", function () use ($user_id, $db_repo) {
 
 Router::get("/messages", function (array $filters) use ($handle, $user_id, $db_repo) {
   $messages = $db_repo->get_user_messages($user_id);
-
   if (isset($filters['after'])) {
-    try {
-      $after = new DateTime($filters['after']);
-      $messages = array_values(
-        array_filter(
-          $messages,
-          function ($msg) use ($after) {
-            $msg_time = new DateTime($msg['timestamp']);
-            $is_after = $msg_time > $after;
-            return $is_after;
-          }
-        )
-      );
-    } catch (Exception $_) {
-      header('HTTP/1.0 400 Bad Request');
-      echo "parameter 'after' should be a time string of format '%Y-%m-%d %H:%M:%S'";
-      exit;
+    if(!Validator::is_valid_datetime($filters['after'])) {
+      Router::sendText("parameter 'after' should be of format '%Y-%m-%d %H:%i:%s:v'", 400);
     }
+    $after = new DateTime($filters['after']);
+    $messages = array_values(
+      array_filter(
+        $messages,
+        function ($msg) use ($after) {
+          $msg_time = new DateTime($msg['timestamp']);
+          $is_after = $msg_time > $after;
+          return $is_after;
+        }
+      )
+    );
   }
-
-  if (isset($filters['toMe'])) {
-    $toMe = $filters['toMe'] == 1;
-    if ($toMe) {
-      $messages = array_values(
-        array_filter(
-          $messages,
-          function ($msg) use ($handle) {
-            $is_to_me = $msg["toHandle"] == $handle;
-            return $is_to_me;
-          }
-        )
-      );
-    }
+  $toMe = array_get($filters, 'toMe', '0');
+  if ($toMe) {
+    $messages = array_values(
+      array_filter(
+        $messages,
+        function ($msg) use ($handle) {
+          $is_to_me = $msg["toHandle"] == $handle;
+          return $is_to_me;
+        }
+      )
+    );
   }
-
-  header("HTTP/1.0 200 OK");
-  echo json_encode($messages);
-  exit;
+  Router::sendJSON($messages, 200);
 });
 
 Router::get("/profiles/my-profile", function () use ($profile) {
@@ -172,34 +162,26 @@ class MessageFormatException extends Exception
 function validateMessage(array $message)
 {
   if (!isset($message['toHandle']) || !Validator::is_valid_handle($message["toHandle"])) {
-    throw new MessageFormatException("message missing or has invalid field 'toHandle'");
+    throw new MessageFormatException("message missing or has invalid 'toHandle' field. " .
+      "Valid handle matches regexp 'w/[a-zA-Z0-9-_]+'"
+    );
   }
   if (!isset($message['text'])) {
     throw new MessageFormatException("message missing field 'text'");
   }
 }
 
-Router::post("/messages", function (string $body) {
-  global $user_id, $db_repo;
-  $message = (array) json_decode($body);
+Router::post("/messages", function (string $body) use ($user_id, $db_repo) {
+  $message = json_decode($body, true);
   try {
     validateMessage($message);
     $message_metadata = $db_repo->add_user_message($user_id, $message);
     if (count($message_metadata) == 0) {
-      header('HTTP/1.0 404 Not Found');
-      echo "user " . $message["toHandle"] . " not found";
-      exit;
+      Router::sendText("user '" . $message["toHandle"] . "' not found", 404);
     }
-    header('HTTP/1.0 201 Created');
-    echo json_encode($message_metadata);
-    exit;
+    Router::sendJSON($message_metadata, 201);
   } catch (MessageFormatException $e) {
-    header('HTTP/1.0 400 Bad Request');
-    echo $e->getMessage();
-    exit;
-  } catch (Throwable $_) {
-    header('HTTP/1.0 500 Internal Server Error');
-    exit;
+    Router::sendText($e->getMessage(), 400);
   }
 });
 
@@ -211,7 +193,6 @@ Router::post("/connections", function (string $to_handle) use ($db_repo, $user_i
       400,
     );
   }
-
   try {
     $result = $db_repo->add_connection_request($user_id, $to_handle);
     Router::sendJSON($result, 200);

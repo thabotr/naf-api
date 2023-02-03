@@ -67,8 +67,12 @@ class MessagesTest extends CommonTest
       ],
     );
     $this->assertEquals(400, $response->getStatusCode());
+    $this->assertEquals(
+      "parameter 'after' should be of format '%Y-%m-%d %H:%i:%s:v'",
+      $this->responseToString($response),
+    );
   }
-  
+
   public function testPostMessagesReturnsBadRequestOnMissingText(): void
   {
     $messageWithoutText = array("toHandle" => $this->others[0]->handle);
@@ -81,11 +85,15 @@ class MessagesTest extends CommonTest
       ],
     );
     $this->assertEquals(400, $response->getStatusCode());
+    $this->assertEquals(
+      "message missing field 'text'",
+      $this->responseToString($response),
+    );
   }
   public function testPostMessagesReturnsBadRequestOnMissingOrBadToHandle(): void
   {
     $messageWithoutReceipient = array("text" => "hello");
-    $response = $this->client->post(
+    $responseOnMissingTarget = $this->client->post(
       "messages",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
@@ -93,9 +101,14 @@ class MessagesTest extends CommonTest
         'json' => $messageWithoutReceipient,
       ],
     );
-    $this->assertEquals(400, $response->getStatusCode());
+    $this->assertEquals(400, $responseOnMissingTarget->getStatusCode());
+    $this->assertEquals(
+      "message missing or has invalid 'toHandle' field. Valid handle matches regexp " .
+      "'w/[a-zA-Z0-9-_]+'",
+      $this->responseToString($responseOnMissingTarget),
+    );
     $messageWBadHandle = array("text" => "hello", "toHandle" => "w/");
-    $response2 = $this->client->post(
+    $responseOnBadHandle = $this->client->post(
       "messages",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
@@ -103,7 +116,12 @@ class MessagesTest extends CommonTest
         'json' => $messageWBadHandle,
       ],
     );
-    $this->assertEquals(400, $response2->getStatusCode());
+    $this->assertEquals(400, $responseOnBadHandle->getStatusCode());
+    $this->assertEquals(
+      "message missing or has invalid 'toHandle' field. Valid handle matches regexp " .
+      "'w/[a-zA-Z0-9-_]+'",
+      $this->responseToString($responseOnBadHandle),
+    );
   }
   public function testPostMessagesReturnsNotFoundOnUnconnectedUserHandle(): void
   {
@@ -122,6 +140,10 @@ class MessagesTest extends CommonTest
       ],
     );
     $this->assertEquals(404, $response->getStatusCode());
+    $this->assertEquals(
+      "user '" . $messageToUnconnectedUser['toHandle'] . "' not found",
+      $this->responseToString($response),
+    );
   }
   public function testPostMessagesSendsMessageOnValidMessage(): void
   {
@@ -184,11 +206,11 @@ class MessagesTest extends CommonTest
       array("text" => "text8", "toHandle" => $this->me->handle, "timestamp" => ""),
     ];
 
-    for($i = 0; $i < count($this->sentMessages); ++$i) {
-      $result = $this->repo->add_user_message( $this->me->id, $this->sentMessages[$i]);
+    for ($i = 0; $i < count($this->sentMessages); ++$i) {
+      $result = $this->repo->add_user_message($this->me->id, $this->sentMessages[$i]);
       $this->sentMessages[$i]["timestamp"] = $result["timestamp"];
     }
-    for($i = 0; $i < count($this->receivedMessages); ++$i) {
+    for ($i = 0; $i < count($this->receivedMessages); ++$i) {
       $result = $this->repo->add_user_message($user->id, $this->receivedMessages[$i]);
       $this->receivedMessages[$i]["timestamp"] = $result["timestamp"];
     }

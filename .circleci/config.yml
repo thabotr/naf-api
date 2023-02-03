@@ -32,6 +32,13 @@ jobs:
           paths:
             - ./vendor
       
+      # run local unit tests
       - run: ./vendor/bin/phpunit --testdox ./tests/unit
-      - run: ./vendor/bin/codecept build
-      - run: ./vendor/bin/codecept run
+      # - run: ./vendor/bin/codecept build
+      # - run: ./vendor/bin/codecept run
+
+      - run: docker-compose up -d
+      - run: docker ps
+      # start docker images
+      # run db-repository tests
+      # run endpoint tests

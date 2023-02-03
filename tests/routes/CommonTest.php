@@ -17,7 +17,7 @@ class CommonTest extends TestCase
   {
     $response = $this->client->get("ping");
     $this->assertEquals(200, $response->getStatusCode());
-    $this->assertTrue($response->getBody() == "pong");
+    $this->assertEquals("pong", $this->responseToString($response));
   }
 
   public function testGetReturnsUnauthorizedOnBadCredentials(): void
@@ -32,6 +32,13 @@ class CommonTest extends TestCase
       ]
     );
     $this->assertEquals(401, $response->getStatusCode());
+    $responseLength = strlen($this->responseToString($response));
+    $this->assertEquals(0, $responseLength);
+  }
+
+  protected function responseToString($response): string
+  {
+    return (string)$response->getBody();
   }
 
   public $client;

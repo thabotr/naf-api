@@ -12,15 +12,13 @@ use resource\Router;
 use middleware\rules\Validator;
 
 Router::get("/ping", function () {
-  echo "pong";
-  exit;
+  Router::sendText("pong");
 });
 
 $db_repo = new DBRepository();
 if (!isset($_SERVER['PHP_AUTH_USER'])) {
   header('WWW-Authenticate: BASIC realm="user profile"');
-  header('HTTP/1.0 401 Unauthorized');
-  exit;
+  Router::sendText("", 401);
 }
 
 $handle = $_SERVER['PHP_AUTH_USER'];

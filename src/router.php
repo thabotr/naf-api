@@ -46,6 +46,9 @@ class Router
       case 400:
         header("HTTP/1.0 400 Bad Request");
         break;
+      case 401:
+        header('HTTP/1.0 401 Unauthorized');
+        break;
       default:
         header("HTTP/1.0 200 OK");
     }

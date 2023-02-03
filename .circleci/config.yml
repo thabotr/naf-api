@@ -40,8 +40,8 @@ jobs:
       - run: docker-compose up -d
       - run: docker ps
       # run unit tests
-      - run: docker exec -it project_webserver_1 vendor/bin/phpunit --testdox ./tests/unit
+      - run: docker exec -it project_webserver_1 ./vendor/bin/phpunit --testdox ./tests/unit
       # run db-repository tests
-      - run: docker exec -it project_webserver_1 vendor/bin/phpunit --testdox ./tests/db-repository
+      - run: docker exec -it project_webserver_1 ./vendor/bin/phpunit --testdox ./tests/db-repository
       # run endpoint tests
-      - run: docker exec -it project_webserver_1 vendor/bin/phpunit --testdox ./tests/routes
+      - run: docker exec -it project_webserver_1 ./vendor/bin/phpunit --testdox ./tests/routes

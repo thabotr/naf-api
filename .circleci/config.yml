@@ -39,7 +39,7 @@ jobs:
       # start docker images
       - run: docker-compose up -d
       - run: docker ps
-      - run: docker exec -it project_webserver_1 ls
+      - run: docker exec -it project_webserver_1 composer -v
       # run unit tests
       - run: docker exec -it project_webserver_1 ./vendor/bin/phpunit --testdox ./tests/unit
       # run db-repository tests

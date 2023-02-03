@@ -19,23 +19,46 @@ class Router
   static function get(string $route, callable $callback): void
   {
     if (Router::we_should_handle_request($route, "GET")) {
-      call_user_func($callback, $_GET);
+      try {
+        call_user_func($callback, $_GET);
+      } catch (\Exception $e) {
+        error_log($e);
+        Router::sendText(
+          "Ooops👀Something went wrong on our side🥺. If the issue persists on retry🔄️, " .
+          "please give us a moment☕ whilst we look into it."
+        );
+      }
       exit;
     }
   }
   static function delete(string $route, callable $callback): void
   {
     if (Router::we_should_handle_request($route, "DELETE")) {
-      call_user_func($callback, $_GET);
+      try {
+        call_user_func($callback, $_GET);
+      } catch (\Exception $e) {
+        error_log($e);
+        Router::sendText(
+          "Ooops👀Something went wrong on our side🥺. If the issue persists on retry🔄️, " .
+          "please give us a moment☕ whilst we look into it."
+        );
+      }
       exit;
     }
   }
-
   static function post(string $route, callable $callback): void
   {
     if (Router::we_should_handle_request($route, "POST")) {
       $request_body = file_get_contents('php://input');
-      call_user_func($callback, $request_body);
+      try {
+        call_user_func($callback, $request_body);
+      } catch (\Exception $e) {
+        error_log($e);
+        Router::sendText(
+          "Ooops👀Something went wrong on our side🥺. If the issue persists on retry🔄️, " .
+          "please give us a moment☕ whilst we look into it."
+        );
+      }
       exit;
     }
   }

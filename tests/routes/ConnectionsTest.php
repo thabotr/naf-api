@@ -46,26 +46,36 @@ class ConnectionsTest extends CommonTest
 
   public function testPostConnectionsReturnsBadRequestOnBadHandle(): void
   {
-    $badHandle1 = "w/";
+    $badHandle = "w/";
     $response = $this->client->post(
       "connections",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
-        'body' => $badHandle1,
+        'body' => $badHandle,
         "http_errors" => false
       ]
     );
     $this->assertEquals(400, $response->getStatusCode());
-    $badHandle2 = "w/!testHandle2";
-    $response2 = $this->client->post(
+    $this->assertEquals(
+      "invalid handle in request body. Expected handle matching " .
+      "'w/[a-zA-Z0-9-_]+'. Found '$badHandle' instead",
+      $this->responseToString($response),
+    );
+    $secondBadHandle = "w/!testHandle2";
+    $secondResponse = $this->client->post(
       "connections",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
-        'body' => $badHandle2,
+        'body' => $secondBadHandle,
         "http_errors" => false
       ]
     );
-    $this->assertEquals(400, $response2->getStatusCode());
+    $this->assertEquals(400, $secondResponse->getStatusCode());
+    $this->assertEquals(
+      "invalid handle in request body. Expected handle matching " .
+      "'w/[a-zA-Z0-9-_]+'. Found '$secondBadHandle' instead",
+      $this->responseToString($secondResponse),
+    );
   }
 
   public function testPostRequestReturnsNotFoundOnConnectToUnregisteredUser(): void
@@ -80,30 +90,44 @@ class ConnectionsTest extends CommonTest
       ]
     );
     $this->assertEquals(404, $response->getStatusCode());
+    $this->assertEquals(
+      "user '$unregisteredHandle' not found",
+      $this->responseToString($response),
+    );
   }
 
   public function testDeleteConnectionsReturnsBadRequestOnBadHandle(): void
   {
-    $badHandle1 = "w/";
+    $badHandle = "w/";
     $response = $this->client->delete(
       "connections",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
-        'query' => ['toHandle' => $badHandle1],
+        'query' => ['toHandle' => $badHandle],
         "http_errors" => false
       ]
     );
     $this->assertEquals(400, $response->getStatusCode());
-    $badHandle2 = "w/!testHandle2";
-    $response2 = $this->client->delete(
+    $this->assertEquals(
+      "expected 'toHandle' parameter matching 'w/[a-zA-Z0-9-_]+'. ".
+      "Found '$badHandle' instead",
+      $this->responseToString($response),
+    );
+    $secondBadHandle = "w/!testHandle2";
+    $responseSecondBadHandle = $this->client->delete(
       "connections",
       [
         'auth' => [$this->me->handle, $this->me->token, 'basic'],
-        'query' => ['toHandle' => $badHandle2],
+        'query' => ['toHandle' => $secondBadHandle],
         "http_errors" => false
       ]
     );
-    $this->assertEquals(400, $response2->getStatusCode());
+    $this->assertEquals(400, $responseSecondBadHandle->getStatusCode());
+    $this->assertEquals(
+      "expected 'toHandle' parameter matching 'w/[a-zA-Z0-9-_]+'. ".
+      "Found '$secondBadHandle' instead",
+      $this->responseToString($responseSecondBadHandle),
+    );
   }
 
   public function testDeleteConnectionsDeletesConnectionsToUser(): void

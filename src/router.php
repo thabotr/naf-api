@@ -55,6 +55,9 @@ class Router
       case 401:
         header('HTTP/1.0 401 Unauthorized');
         break;
+      case 404:
+        header('HTTP/1.0 404 Not Found');
+        break;
       case 409:
         header('HTTP/1.0 409 Conflict');
         break;

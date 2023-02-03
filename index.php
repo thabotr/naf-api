@@ -62,15 +62,15 @@ Router::get(
     $now = $db_repo->datetime_now();
     $msgsAfterTimestamp = isset($params['messagesAfter'])
       ? $params['messagesAfter'] : $now;
-    if(!Validator::is_valid_datetime($msgsAfterTimestamp)) {
+    if (!Validator::is_valid_datetime($msgsAfterTimestamp)) {
       Router::sendText(
         "parameter 'messagesAfter' should be of format '%Y-%m-%d %H:%i:%s:v'",
         400,
       );
     }
     $connsAfterTimestamp = isset($params['connectionsAfter'])
-    ? $params['connectionsAfter'] : $now;
-    if(!Validator::is_valid_datetime($connsAfterTimestamp)) {
+      ? $params['connectionsAfter'] : $now;
+    if (!Validator::is_valid_datetime($connsAfterTimestamp)) {
       Router::sendText(
         "parameter 'connectionsAfter' should be of format '%Y-%m-%d %H:%i:%s:v'",
         400,
@@ -86,12 +86,20 @@ Router::get(
   }
 );
 
+function array_get(array $array, $key_name, $default_value)
+{
+  return isset($array[$key_name]) ? $array[$key_name] : $default_value;
+}
+
 Router::delete("/connections", function (array $params) use ($user_id, $db_repo) {
-  if (!isset($params["toHandle"])) {
-    Router::sendText("missing URL parameter 'toHandle'", 400);
+  $disconnect_handle = array_get($params, 'toHandle', '');
+  if (!Validator::is_valid_handle($disconnect_handle)) {
+    Router::sendText(
+      "expected 'toHandle' parameter matching 'w/[a-zA-Z0-9-_]+'. " .
+      "Found '$disconnect_handle' instead",
+      400
+    );
   }
-  $disconnect_handle = $params["toHandle"];
-  validate_handle($disconnect_handle);
   $db_repo->abandon_user($user_id, $disconnect_handle);
   Router::sendText("abandoned user $disconnect_handle", 200);
 });
@@ -205,27 +213,19 @@ Router::post("/messages", function (string $body) {
 
 Router::post("/connections", function (string $to_handle) use ($db_repo, $user_id) {
   if (!Validator::is_valid_handle($to_handle)) {
-    header("HTTP/1.0 400 Bad Request");
-    echo "invalid or missing handle in request body. Expected handle matching " .
-      "'w/[a-zA-Z0-9-_]+'";
-    exit;
+    Router::sendText(
+      "invalid handle in request body. Expected handle matching " .
+      "'w/[a-zA-Z0-9-_]+'. Found '$to_handle' instead",
+      400,
+    );
   }
 
-  $repo_result = array();
   try {
-    $repo_result = $db_repo->add_connection_request($user_id, $to_handle);
+    $result = $db_repo->add_connection_request($user_id, $to_handle);
+    Router::sendJSON($result, 200);
   } catch (NoConnectionRequestTimestampException $_) {
-    header("HTTP/1.0 404 Not Found");
-    echo "user " . $to_handle . " not found";
-    exit;
-  } catch (Exception $_) {
-    header("HTTP/1.0 500 Internal Server Error");
-    exit;
+    Router::sendText("user '" . $to_handle . "' not found", 404);
   }
-  echo json_encode($repo_result);
-  exit;
 });
 
-header('HTTP/1.0 404 Not Found');
-exit;
-?>
+Router::sendText("", 404);

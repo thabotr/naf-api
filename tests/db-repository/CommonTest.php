@@ -15,8 +15,25 @@ class CommonTest extends TestCase
     $this->db_repo = new DBRepository();
   }
 
-  public function testSilenceNoTestsWarning(): void
+  public function testSilenceWarningAboutMissingTests(): void
   {
     $this->assertTrue(true);
+  }
+
+  protected function setUsers(array $profiles): void
+  {
+    foreach( $profiles as $profile) {
+      $this->db_repo->query(
+        "INSERT IGNORE INTO user(id, handle, token) " .
+        "VALUES ($profile->id, '$profile->handle', '$profile->token')"
+      );
+    }
+  }
+
+  protected function clearUsers(array $users = null): void
+  {
+    foreach($users as $user) {
+      $this->db_repo->query("DELETE FROM user WHERE id = " . $user->id);
+    }
   }
 }

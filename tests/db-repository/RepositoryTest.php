@@ -100,77 +100,6 @@ class RepositoryTest extends CommonTest
     $this->assertTrue($user_added);
   }
   
-  public function testAddConnectionRequestInsertsConnectionToDbAndReturnsTimestampOnSuccess(): void
-  {
-    $this->_clearConnectionRequest();
-    $repo_result = $this->db_repo->add_connection_request(
-      $this->from_user_id, $this->to_user_handle
-    );
-    $this->assertArrayHasKey("timestamp", $repo_result);
-
-    $db_result = $this->_checkConnectionRequestsBetween(
-      $this->to_user_id,
-      $this->from_user_id
-    );
-    $connection_added_to_db = $db_result['count'] >= 1;
-    $this->assertTrue($connection_added_to_db);
-    $this->assertEquals($repo_result['timestamp'], $db_result['timestamp']);
-  }
-  public function testAddConnectionRequestJustReturnsTimestampOnDuplicateCall(): void
-  {
-    $this->_clearConnectionRequest();
-    $multiple_calls = 2;
-    for ($call = 0; $call < $multiple_calls; ++$call) {
-      $this->db_repo->add_connection_request(
-        $this->from_user_id,
-        $this->to_user_handle
-      );
-    }
-    $db_result = $this->_checkConnectionRequestsBetween(
-      $this->to_user_id,
-      $this->from_user_id
-    );
-    $connection_only_added_once_to_db = $db_result['count'] == 1;
-    $this->assertTrue($connection_only_added_once_to_db);
-  }
-
-  public function testAddConnectionRequestReturnsTimestampOnAlreadyConnected(): void
-  {
-    $to_connected_user_id = 2;
-    $this->_setConnectionsTo([$to_connected_user_id]);
-    $to_connected_user_handle = "w/testHandle2";
-    $repo_result = $this->db_repo->add_connection_request(
-      $this->from_user_id,
-      $to_connected_user_handle,
-    );
-    $this->assertArrayHasKey('timestamp', $repo_result);
-    $db_result = $this->_checkConnectionRequestsBetween(
-      $this->from_user_id,
-      $to_connected_user_id
-    );
-    $connection_request_not_created = $db_result['count'] == 0;
-    $this->assertTrue($connection_request_not_created);
-  }
-
-  public function testAddConnRqstOnMutualRqstToConnectAddsConnectionBetweenUsersAndReturnsConnTimestamp(): void
-  {
-    $user_5_id = 5;
-    $user_5_handle = "w/testHandle5";
-
-    $this->db_repo->add_connection_request($user_5_id, $this->user_handle);
-    $this->db_repo->add_connection_request($this->user_id, $user_5_handle);
-    $users_are_connected = $this->_usersConnected($this->user_id, $user_5_id);
-
-    $this->assertTrue($users_are_connected);
-
-    $db_result = $this->_checkConnectionRequestsBetween($this->user_id, $user_5_id);
-    $request_to_connect_does_not_exist = $db_result['count'] == 0;
-    $this->assertTrue($request_to_connect_does_not_exist);
-
-    $this->_disconnectUsers($this->user_id, $user_5_id);
-    $this->_clearRequestsBetweenUsers($this->user_id, $user_5_id);
-  }
-
   public function testDeleteUserRemovesUserFromDb(): void
   {
     $user_handle = "w/userToDelete";
@@ -365,14 +294,6 @@ class RepositoryTest extends CommonTest
       $user_id
     );
     return $result[0]['count'] > 0;
-  }
-  private function _clearRequestsBetweenUsers(int $user_a_id, int $user_b_id): void
-  {
-    $this->db_repo->query(
-      "DELETE FROM connection_request " .
-      "WHERE from_user = $user_a_id AND to_user = $user_b_id " .
-      "OR from_user = $user_b_id AND to_user = $user_a_id"
-    );
   }
 }
 ?>

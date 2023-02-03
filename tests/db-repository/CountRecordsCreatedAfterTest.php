@@ -41,26 +41,11 @@ class CountRecordsCreatedAfterTest extends CommonTest
   public function tearDown(): void
   {
     // will also clear connections, conn_requests and messages
-    $this->clearUsers();
+    $this->clearUsers([$this->me, $this->other_user]);
   }
 
   public $timeB4MsgSend;
   public $timeB4UserConnect;
-
-  private function setUsers(array $profiles): void
-  {
-    foreach( $profiles as $profile) {
-      $this->db_repo->query(
-        "INSERT IGNORE INTO user(id, handle, token) " .
-        "VALUES ($profile->id, '$profile->handle', '$profile->token')"
-      );
-    }
-  }
-
-  private function clearUsers(): void
-  {
-    $this->db_repo->query("DELETE FROM user WHERE id in (1, 2)");
-  }
 
   private function setMessages(): void
   {

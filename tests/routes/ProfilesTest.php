@@ -71,7 +71,7 @@ class ProfilesTest extends CommonTest
       "invalid handle '$badHandle'. Valid handle matches regexp 'w/[a-zA-Z0-9-_]+'",
       $this->responseToString($responseForBadHandle),
     );
-    
+
     $handle = "w/testHandle6";
     $badToken = "shortPw";
     $responseForBadToken = $this->client->post(
@@ -90,7 +90,7 @@ class ProfilesTest extends CommonTest
     $response = $this->client->post(
       $this->myProfileURL,
       [
-        'auth' => [$this->me->handle, $this->me->token, 'basic'], 
+        'auth' => [$this->me->handle, $this->me->token, 'basic'],
         'http_errors' => false
       ]
     );
@@ -110,6 +110,10 @@ class ProfilesTest extends CommonTest
       ["auth" => [$user->handle, $user->token, 'basic']]
     );
     $this->assertEquals(200, $response->getStatusCode());
+    $this->assertEquals(
+      "Notifications Are Free and so are you! Cheers😉",
+      $this->responseToString($response),
+    );
     $this->assertUserNotRegistered($user);
     $this->clearUser($user);
   }

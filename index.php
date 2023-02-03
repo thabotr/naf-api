@@ -34,7 +34,6 @@ Router::post("/profiles/my-profile", function () use ($handle, $token, $db_repo)
   if (!Validator::is_valid_token($token)) {
     Router::sendText("token too weak. Must be atleast 8 characters", 400);
   }
-
   $new_user = array(
     "handle" => $handle,
     "token" => $token,
@@ -43,7 +42,6 @@ Router::post("/profiles/my-profile", function () use ($handle, $token, $db_repo)
   if ($user_added) {
     Router::sendText("Notifications Are Free $handle!", 201);
   }
-
   Router::sendText("We already know someone by the handle '$handle'", 409);
 });
 
@@ -106,9 +104,7 @@ Router::delete("/connections", function (array $params) use ($user_id, $db_repo)
 
 Router::delete("/profiles/my-profile", function () use ($user_id, $db_repo) {
   $db_repo->delete_user_account($user_id);
-  header("HTTP/1.0 200 OK");
-  echo "Notifications Are Free and so are you! Cheers😉";
-  exit;
+  Router::sendText("Notifications Are Free and so are you! Cheers😉", 200);
 });
 
 Router::get("/profiles/connected-users", function () use ($user_id, $db_repo) {
@@ -165,11 +161,7 @@ Router::get("/messages", function (array $filters) use ($handle, $user_id, $db_r
 });
 
 Router::get("/profiles/my-profile", function () use ($profile) {
-  header("Content-Type: application/json");
-  $resp_str = json_encode($profile);
-  header("Content-Length: " . strlen($resp_str));
-  echo $resp_str;
-  exit;
+  Router::sendJSON($profile, 200);
 });
 
 

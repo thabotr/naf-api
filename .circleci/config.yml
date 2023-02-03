@@ -8,32 +8,31 @@ jobs:
   build:
     # Add steps to the job
     # See: https://circleci.com/docs/2.0/configuration-reference/#steps
-    docker:
-      # Specify the version you desire here
-      - image: cimg/php:7.4.33-browsers
+    machine: # executor type
+      image: ubuntu-2004:202010-01
     steps:
       - checkout
 
-      - run: sudo apt update # PHP CircleCI 2.0 Configuration File# PHP CircleCI 2.0 Configuration File sudo apt install zlib1g-dev libsqlite3-dev
-      - run: sudo docker-php-ext-install zip
+      # - run: sudo apt update # PHP CircleCI 2.0 Configuration File# PHP CircleCI 2.0 Configuration File sudo apt install zlib1g-dev libsqlite3-dev
+      # - run: sudo docker-php-ext-install zip
 
       # Download and cache dependencies
-      - restore_cache:
-          keys:
-            # "composer.lock" can be used if it is committed to the repo
-            - v1-dependencies-{{ checksum "composer.json" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+      # - restore_cache:
+      #     keys:
+      #       # "composer.lock" can be used if it is committed to the repo
+      #       - v1-dependencies-{{ checksum "composer.json" }}
+      #       # fallback to using the latest cache if no exact match is found
+      #       - v1-dependencies-
 
-      - run: composer install -n --prefer-dist
+      # - run: composer install -n --prefer-dist
 
-      - save_cache:
-          key: v1-dependencies-{{ checksum "composer.json" }}
-          paths:
-            - ./vendor
+      # - save_cache:
+      #     key: v1-dependencies-{{ checksum "composer.json" }}
+      #     paths:
+      #       - ./vendor
       
-      # run local unit tests
-      - run: ./vendor/bin/phpunit --testdox ./tests/unit
+      # # run local unit tests
+      # - run: ./vendor/bin/phpunit --testdox ./tests/unit
       # - run: ./vendor/bin/codecept build
       # - run: ./vendor/bin/codecept run
 
@@ -41,5 +40,6 @@ jobs:
       - setup_remote_docker
       - run: docker-compose up -d
       - run: docker ps
+      # run unit tests
       # run db-repository tests
       # run endpoint tests

@@ -4,16 +4,13 @@ version: 2
 
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
-executors:
-  my-executor:
-    docker:
-      # Specify the version you desire here
-      - image: cimg/php:7.4.33-browsers
 jobs:
   build:
     # Add steps to the job
     # See: https://circleci.com/docs/2.0/configuration-reference/#steps
-    executor: my-executor
+    docker:
+      # Specify the version you desire here
+      - image: cimg/php:7.4.33-browsers
     steps:
       - checkout
 

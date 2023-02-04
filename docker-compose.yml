@@ -21,5 +21,13 @@ services:
             MARIADB_ROOT_PASSWORD: naf_tester_root_pw
         ports:
             - "3306:3306"
+    flyway:
+        image: flyway/flyway:9.14.1-alpine
+        environment:
+            FLYWAY_BASELINE_ON_MIGRATE: true
         volumes:
-          - ./db-data:/var/lib/mysql
+            - ./src/migrations/mariadb/10.3:/flyway/sql
+        depends_on:
+            - mariadb
+        command: -url=jdbc:mariadb://mariadb:3306/thabolao_naf_db -user=naf_tester -password=naf_tester_pw -connectRetries=6 migrate
+

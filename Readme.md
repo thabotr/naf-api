@@ -5,9 +5,8 @@ Provides an interface for registering, logging in, connecting with other users, 
 - 🔒 endpoint passes credentials through basic authentication
 - **&lt;timestamp>** is a datetime string of format 'Y-m-d H-M-S'
 - **&lt;validHandle>** is a string which matches regexp 'w/[a-zA-Z0-9-_]+'
-- ❌❌ endpoint unvalidated
-- ✅❌ endpoint DEV validated
-- ✅✅ endpoint PROD validated
+
+[![thabotr](https://circleci.com/gh/thabotr/naf-api.svg?style=svg)](https://app.circleci.com/pipelines/github/thabotr/naf-api)
 
 # Run against different environments
 
@@ -20,14 +19,14 @@ Provides an interface for registering, logging in, connecting with other users, 
     http://localhost:8000/naf/api
 
 # Endpoints
-## ✅✅ GET /ping
+##  GET /ping
 use for server liveness probe
 
 Returns:
 
     Status: 200 OK
 
-## ✅✅ 🔐 GET /profiles/connected-users
+##  🔐 GET /profiles/connected-users
 the profiles for all connected users
 
 Returns:
@@ -43,7 +42,7 @@ Body:
     ...
   ]
   ```
-## ✅✅ 🔐 GET /profiles/my-profile
+##  🔐 GET /profiles/my-profile
 Returns:
 
     Status: 200 OK
@@ -54,7 +53,7 @@ Body:
   {"handle" : "<user_handle>"}
   ```
 
-## ✅✅ 🔒 POST /profiles/my-profile
+##  🔒 POST /profiles/my-profile
 register a new user
 
 **&lt;username of basic auth> is a &lt;validHandle> which is not yet registered AND &lt;password of basic auth> is a string of length 8 or greater**
@@ -97,14 +96,14 @@ Returns:
 
     Status: 409 Conflict
 
-## ✅✅ 🔐 DELETE /profiles/my-profile
+##  🔐 DELETE /profiles/my-profile
 deregister user
 
 Returns:
 
     Status: 200 OK
 
-## ✅✅ 🔐 GET /connections/pending
+##  🔐 GET /connections/pending
 all connection pending connection requests sent by user
 
 Returns:
@@ -121,7 +120,7 @@ Body:
   ]
   ```
 
-## ✅✅ 🔐 POST /connections
+##  🔐 POST /connections
 
 Creates a request to connect to another user. If two users post these to each other then they will be connected.
 
@@ -167,7 +166,7 @@ Request body:
 
       Status: 404 Not Found
 
-## ✅✅ 🔐 DELETE /connections?toHandle=&lt;validHandle>
+##  🔐 DELETE /connections?toHandle=&lt;validHandle>
 
 disconnects from a user or deletes a request to connect to a user
 
@@ -192,7 +191,7 @@ disconnects from a user or deletes a request to connect to a user
 
     Status: 400 Bad Request
 
-## ✅✅ 🔐 GET /messages?after=&lt;timestamp>&toMe=&lt;true if 1 otherwise false>
+##  🔐 GET /messages?after=&lt;timestamp>&toMe=&lt;true if 1 otherwise false>
 all messsages sent to and from this user
 
 **url parameter &lt;after> is a valid**
@@ -242,7 +241,7 @@ Returns:
     Status: 400 Bad Request
 
 
-## ✅✅ 🔐 POST /messages
+##  🔐 POST /messages
 sends a message to another user
 
 Request body:
@@ -275,7 +274,7 @@ Returns:
 
     Status: 404 Not Found
 
-## ✅✅ 🔐 GET /notifications?messagesAfter=&lt;timestamp>&connectionsAfter=&lt;timestamp>
+##  🔐 GET /notifications?messagesAfter=&lt;timestamp>&connectionsAfter=&lt;timestamp>
 returns a bit string where the first bit represents the presence of user messages dated after &lt;messagesAfter> and the second bit represents the presence of user connections dated after &lt;connectionsAfter>
 
 **&lt;messagesAfter> is a &lt;timestamp> and &lt;connectionsAfter> is a &lt;timestamp>**

@@ -5,7 +5,7 @@ Provides a set of endpoints for registering, logging in, connecting with other u
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/thabotr/naf-api?style=flat-square)
 
 # Glossary
-- 🔐 endpoint requires basic authentication. To use username `testHandle` and password `testToken` by default as basic auth credentials
+- 🔐 endpoint requires basic authentication.
 - 🔒 endpoint passes credentials through basic authentication
 - **&lt;timestamp>** is a datetime string of format 'Y-m-d H-M-S'
 - **&lt;validHandle>** is a string which matches regexp 'w/[a-zA-Z0-9-_]+'

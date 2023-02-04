@@ -25,9 +25,8 @@ jobs:
       - run: php composer-setup.php
       - run: php -r "unlink('composer-setup.php');"
       - run: php composer.phar update
-      # run unit tests
-      - run: docker exec -it project_webserver_1 ./vendor/bin/phpunit --testdox ./tests/unit
-      # run db-repository tests
-      - run: docker exec -it project_webserver_1 ./vendor/bin/phpunit --testdox ./tests/db-repository
-      # run endpoint tests
-      - run: docker exec -it project_webserver_1 ./vendor/bin/phpunit --testdox ./tests/routes
+      # run tests
+      - run: mkdir test-results
+      - run: docker exec -it project_webserver_1 ./vendor/bin/phpunit --testdox ./tests --log-junit ./test-results/tests.xml
+      - store_test_results:
+          path: test-results

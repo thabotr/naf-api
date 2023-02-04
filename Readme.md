@@ -1,5 +1,5 @@
 # NAF API
-Provides a set of endpoints for registering, logging in, connecting with other users, and messaging with NAF.
+This describes the resources that make up the NAF API
 
 [![thabotr](https://circleci.com/gh/thabotr/naf-api.svg?style=svg)](https://app.circleci.com/pipelines/github/thabotr/naf-api)
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/thabotr/naf-api?style=flat-square)

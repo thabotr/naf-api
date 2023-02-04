@@ -24,7 +24,7 @@ services:
     flyway:
         image: flyway/flyway:9.14.1-alpine
         environment:
-            FLYWAY_BASELINE_ON_MIGRATE: true
+            FLYWAY_BASELINE_ON_MIGRATE: 'true'
         volumes:
             - ./src/migrations/mariadb/10.3:/flyway/sql
         depends_on:

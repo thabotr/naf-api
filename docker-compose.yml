@@ -30,6 +30,5 @@ services:
         depends_on:
             - mariadb
         command: > 
-            -url=jdbc:mariadb://mariadb:3306/${DEV_DB_SCHEMA} -user=${DEV_DB_USERNAME} 
-            -password=${DEV_DB_PASSWORD} -connectRetries=6 migrate
-
+            -url=jdbc:mariadb://mariadb:3306/${DEV_DB_SCHEMA} -user=root 
+            -password=naf_tester_root_pw -connectRetries=6 migrate

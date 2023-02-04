@@ -1,4 +1,5 @@
-CREATE DEFINER=`thabolao_naf_admin`@`%` PROCEDURE `connect_users`(
+DELIMITER $$
+CREATE PROCEDURE `connect_users`(
 	IN `from_user` INT,
 	IN `to_user_handle` VARCHAR(50)
 )
@@ -62,4 +63,5 @@ BEGIN
     VALUES( created_at, from_user, to_user);
   END `body`;
 	SELECT created_at;
-END
+END $$
+DELIMITER ;

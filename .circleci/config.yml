@@ -36,6 +36,7 @@ jobs:
       # - run: ./vendor/bin/codecept build
       # - run: ./vendor/bin/codecept run
 
+      - run: cp .env.example .env
       # start docker images
       - run: docker-compose up -d
       # install php dependencies [composer and project dependencies]
@@ -46,7 +47,6 @@ jobs:
       - run: php composer-setup.php
       - run: php -r "unlink('composer-setup.php');"
       - run: php composer.phar update
-      - run: cp .env.example .env
       # run unit tests
       - run: docker exec -it project_webserver_1 ./vendor/bin/phpunit --testdox ./tests/unit
       # run db-repository tests

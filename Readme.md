@@ -1,12 +1,14 @@
 # NAF API
 Provides an interface for registering, logging in, connecting with other users, and messaging with NAF.
+
+[![thabotr](https://circleci.com/gh/thabotr/naf-api.svg?style=svg)](https://app.circleci.com/pipelines/github/thabotr/naf-api)
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/thabotr/naf-api?style=flat-square)
+
 # Glossary
 - 🔐 endpoint requires basic authentication. To use username `testHandle` and password `testToken` by default as basic auth credentials
 - 🔒 endpoint passes credentials through basic authentication
 - **&lt;timestamp>** is a datetime string of format 'Y-m-d H-M-S'
 - **&lt;validHandle>** is a string which matches regexp 'w/[a-zA-Z0-9-_]+'
-
-[![thabotr](https://circleci.com/gh/thabotr/naf-api.svg?style=svg)](https://app.circleci.com/pipelines/github/thabotr/naf-api)
 
 # Run against different environments
 

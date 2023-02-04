@@ -1,0 +1,55 @@
+# PHP CircleCI 2.0 configuration file
+# See: https://circleci.com/docs/2.0/language-php/
+version: 2
+
+# Define a job to be invoked later in a workflow.
+# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
+jobs:
+  build:
+    # Add steps to the job
+    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
+    machine: # executor type
+      image: ubuntu-2004:202010-01
+    steps:
+      - checkout
+
+      # - run: sudo apt update # PHP CircleCI 2.0 Configuration File# PHP CircleCI 2.0 Configuration File sudo apt install zlib1g-dev libsqlite3-dev
+      # - run: sudo docker-php-ext-install zip
+
+      # Download and cache dependencies
+      # - restore_cache:
+      #     keys:
+      #       # "composer.lock" can be used if it is committed to the repo
+      #       - v1-dependencies-{{ checksum "composer.json" }}
+      #       # fallback to using the latest cache if no exact match is found
+      #       - v1-dependencies-
+
+      # - run: composer install -n --prefer-dist
+
+      # - save_cache:
+      #     key: v1-dependencies-{{ checksum "composer.json" }}
+      #     paths:
+      #       - ./vendor
+      
+      # # run local unit tests
+      # - run: ./vendor/bin/phpunit --testdox ./tests/unit
+      # - run: ./vendor/bin/codecept build
+      # - run: ./vendor/bin/codecept run
+
+      # start docker images
+      - run: docker-compose up -d
+      # install php dependencies [composer and project dependencies]
+      - run: sudo apt-get update
+      - run: sudo apt-get install php php-curl php-xml
+      - run: php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+      - run: php -r "if (hash_file('sha384', 'composer-setup.php') === '55ce33d7678c5a611085589f1f3ddf8b3c52d662cd01d4ba75c0ee0459970c2200a51f492d557530c71c15d8dba01eae') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+      - run: php composer-setup.php
+      - run: php -r "unlink('composer-setup.php');"
+      - run: php composer.phar update
+      - run: cp .env.example .env
+      # run unit tests
+      - run: docker exec -it project_webserver_1 ./vendor/bin/phpunit --testdox ./tests/unit
+      # run db-repository tests
+      - run: docker exec -it project_webserver_1 ./vendor/bin/phpunit --testdox ./tests/db-repository
+      # run endpoint tests
+      - run: docker exec -it project_webserver_1 ./vendor/bin/phpunit --testdox ./tests/routes

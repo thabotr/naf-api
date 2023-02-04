@@ -1,5 +1,5 @@
 # NAF API
-Provides an interface for registering, logging in, connecting with other users, and messaging with NAF.
+Provides a set of endpoints for registering, logging in, connecting with other users, and messaging with NAF.
 
 [![thabotr](https://circleci.com/gh/thabotr/naf-api.svg?style=svg)](https://app.circleci.com/pipelines/github/thabotr/naf-api)
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/thabotr/naf-api?style=flat-square)
@@ -10,7 +10,7 @@ Provides an interface for registering, logging in, connecting with other users, 
 - **&lt;timestamp>** is a datetime string of format 'Y-m-d H-M-S'
 - **&lt;validHandle>** is a string which matches regexp 'w/[a-zA-Z0-9-_]+'
 
-# Run against different environments
+# Run against environments
 
  - PROD
 
@@ -18,7 +18,7 @@ Provides an interface for registering, logging in, connecting with other users, 
 
 - DEV
 
-    http://localhost:8000/naf/api
+    http://0.0.0.0:80/naf/api
 
 # Endpoints
 ##  GET /ping

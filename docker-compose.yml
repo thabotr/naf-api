@@ -15,9 +15,9 @@ services:
         image: mariadb:10.3.37
         restart: always
         environment:
-            MARIADB_DATABASE: thabolao_naf_db
-            MARIADB_USER: naf_tester
-            MARIADB_PASSWORD: naf_tester_pw
+            MARIADB_DATABASE: "${DEV_DB_SCHEMA}"
+            MARIADB_USER: "${DEV_DB_USERNAME}"
+            MARIADB_PASSWORD: "${DEV_DB_PASSWORD}"
             MARIADB_ROOT_PASSWORD: naf_tester_root_pw
         ports:
             - "3306:3306"
@@ -29,5 +29,7 @@ services:
             - ./src/migrations/mariadb/10.3:/flyway/sql
         depends_on:
             - mariadb
-        command: -url=jdbc:mariadb://mariadb:3306/thabolao_naf_db -user=naf_tester -password=naf_tester_pw -connectRetries=6 migrate
+        command: > 
+            -url=jdbc:mariadb://mariadb:3306/${DEV_DB_SCHEMA} -user=${DEV_DB_USERNAME} 
+            -password=${DEV_DB_PASSWORD} -connectRetries=6 migrate
 

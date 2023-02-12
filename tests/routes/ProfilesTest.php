@@ -10,19 +10,15 @@ class ProfilesTest extends CommonTest
 {
   public function testGetProfilesConnectedUsersReturnsProfilesForConnectedUsers(): void
   {
-    $likeProfile = function ($user) {
-      return array("handle" => $user->handle);
-    };
-
     $this->setUserConnections();
     $response = $this->client->get(
       'profiles/connected-users',
       ['auth' => [$this->me->handle, $this->me->token, 'basic']]
     );
     $this->assertEquals(200, $response->getStatusCode());
-    $profiles = array_map($likeProfile, json_decode($response->getBody()));
-    $expectedProfiles = array_map($likeProfile, $this->others);
-    $this->assertEquals($expectedProfiles, $profiles);
+    $profiles = json_decode($response->getBody(), true);
+    $repoProfiles = $this->repo->get_profiles_for_connected_users($this->me->id);
+    $this->assertEquals($repoProfiles, $profiles);
     $this->clearUserConnections();
   }
 

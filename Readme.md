@@ -39,8 +39,8 @@ Body:
 
   ```json
   [
-    {"handle": "<handle_1>"}, 
-    {"handle": "<handle_2>"},
+    {"handle": "<handle_1>", "connected_on" : "<timestamp>"},
+    {"handle": "<handle_2>", "connected_on" : "<timestamp>"},
     ...
   ]
   ```

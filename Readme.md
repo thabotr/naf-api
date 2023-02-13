@@ -2,10 +2,10 @@
 This describes the resources that make up the NAF API
 
 [![thabotr](https://circleci.com/gh/thabotr/naf-api.svg?style=svg)](https://app.circleci.com/pipelines/github/thabotr/naf-api)
-
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/thabotr/naf-api?style=flat-square)
+![semver](https://img.shields.io/badge/semver-2.0.0-blue) 
 
-![semver](https://img.shields.io/badge/semver-2.0.0-blue) [SemVer](https://semver.org/) observance
+- [SemVer](https://semver.org/) observed
 
 # Glossary
 - 🔐 endpoint requires basic authentication.

@@ -115,7 +115,8 @@ class CommonTest extends TestCase
   {
     foreach($this->others as $user) {
       $this->repo->add_connection_request($this->me->id, $user->handle);
-      $this->repo->add_connection_request($user->id, $this->me->handle);
+      $result = $this->repo->add_connection_request($user->id, $this->me->handle);
+      $user->connectedOn = $result['timestamp'];
     }
   }
 }
@@ -125,6 +126,7 @@ class Profile
   public int $id;
   public string $token;
   public string $handle;
+  public string $connectedOn;
 
   public function __construct(int $id, string $handle, string $token)
   {

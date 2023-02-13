@@ -8,7 +8,7 @@ use middleware\rules\UserNotFoundException;
 
 class ProfilesTest extends CommonTest
 {
-  public function testGetProfilesConnectedUsersReturnsProfilesForConnectedUsers(): void
+  public function testGetProfilesConnectedUsersReturnsAllProfilesForConnectedUsers(): void
   {
     $this->setUserConnections();
     $response = $this->client->get(
@@ -20,6 +20,50 @@ class ProfilesTest extends CommonTest
     $repoProfiles = $this->repo->get_profiles_for_connected_users($this->me->id);
     $this->assertEquals($repoProfiles, $profiles);
     $this->clearUserConnections();
+  }
+  public function testGetProfilesConnectedUsersReturnsFilteredProfilesForConnectedUsersOnValidAfterParam(): void
+  {
+    $this->setUserConnections();
+    $validAfter = $this->others[2]->connectedOn;
+    $response = $this->client->get(
+      'profiles/connected-users',
+      [
+        'auth' => [$this->me->handle, $this->me->token, 'basic'],
+        'query' => ['after' => $validAfter]
+      ]
+    );
+    $this->assertEquals(200, $response->getStatusCode());
+    $profiles = json_decode($response->getBody(), true);
+    $repoProfiles = $this->repo->get_profiles_for_connected_users($this->me->id);
+    $filteredRepoProfiles = array_values(
+      array_filter(
+        $repoProfiles,
+        function ($profile) use ($validAfter) {
+          $connectedOn = new \DateTime($profile['connected_on']);
+          $isAfter = $connectedOn > new \DateTime($validAfter);
+          return $isAfter;
+        }
+      )
+    );
+    $this->assertEquals($filteredRepoProfiles, $profiles);
+    $this->clearUserConnections();
+  }
+  public function testGetProfilesConnectedReturnsBadRequestOnBadAfterParam(): void
+  {
+    $invalidTimestamp = "2020-=1-11";
+    $response = $this->client->get(
+      'profiles/connected-users',
+      [
+        'auth' => [$this->me->handle, $this->me->token, 'basic'],
+        'query' => ['after' => $invalidTimestamp],
+        'http_errors' => false,
+      ]
+    );
+    $this->assertEquals(400, $response->getStatusCode());
+    $this->assertEquals(
+      "parameter 'after' should be of format '%Y-%m-%d %H:%i:%s.v'",
+      $this->responseToString($response),
+    );
   }
 
   public function testGetMyProfileReturnsProfile(): void

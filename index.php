@@ -107,8 +107,25 @@ Router::delete("/profiles/my-profile", function () use ($user_id, $db_repo) {
   Router::sendText("Notifications Are Free and so are you! Cheers😉", 200);
 });
 
-Router::get("/profiles/connected-users", function () use ($user_id, $db_repo) {
+Router::get("/profiles/connected-users", function ($params) use ($user_id, $db_repo) {
+  $after = new DateTime('1970-01-01');
+  if (isset($params['after'])) {
+    if (!Validator::is_valid_datetime($params['after'])) {
+      Router::sendText("parameter 'after' should be of format '%Y-%m-%d %H:%i:%s.v'", 400);
+    }
+    $after = new DateTime($params['after']);
+  }
   $profiles = $db_repo->get_profiles_for_connected_users($user_id);
+  $profiles = array_values(
+    array_filter(
+      $profiles,
+      function ($profile) use ($after) {
+        $connectedOn = new DateTime($profile['connected_on']);
+        $isAfter = $connectedOn > $after;
+        return $isAfter;
+      }
+    )
+  );
   Router::sendJSON($profiles, 200);
 });
 
@@ -120,7 +137,7 @@ Router::get("/connections/pending", function () use ($user_id, $db_repo) {
 Router::get("/messages", function (array $filters) use ($handle, $user_id, $db_repo) {
   $messages = $db_repo->get_user_messages($user_id);
   if (isset($filters['after'])) {
-    if(!Validator::is_valid_datetime($filters['after'])) {
+    if (!Validator::is_valid_datetime($filters['after'])) {
       Router::sendText("parameter 'after' should be of format '%Y-%m-%d %H:%i:%s:v'", 400);
     }
     $after = new DateTime($filters['after']);

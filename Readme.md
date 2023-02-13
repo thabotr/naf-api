@@ -28,8 +28,8 @@ Returns:
 
     Status: 200 OK
 
-##  🔐 GET /profiles/connected-users
-the profiles for all connected users
+##  🔐 GET /profiles/connected-users?after=&lt;timestamp>
+the profiles for all connected users. Returns only users connected to on datetime later than &lt;after> if it is given.
 
 Returns:
 
@@ -44,6 +44,13 @@ Body:
     ...
   ]
   ```
+
+**&lt;after> is an invalid timestamp**
+
+Returns:
+
+    Status: 400 Bad Request
+
 ##  🔐 GET /profiles/my-profile
 Returns:
 
@@ -196,7 +203,7 @@ disconnects from a user or deletes a request to connect to a user
 ##  🔐 GET /messages?after=&lt;timestamp>&toMe=&lt;true if 1 otherwise false>
 all messsages sent to and from this user
 
-**url parameter &lt;after> is a valid**
+**url parameter &lt;after> is a valid <timestamp>**
 
 Returns:
 
